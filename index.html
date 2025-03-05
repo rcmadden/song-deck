@@ -363,7 +363,7 @@
             // Notes
             const notes = document.createElement('div');
             notes.className = 'notes';
-            notes.textContent = song.notes || 'First song I picked out key by ear';
+            notes.textContent = song.notes;
             
             songDetail.appendChild(songHeader);
             songDetail.appendChild(puzzleSection);
@@ -374,7 +374,7 @@
         
         // Example CSV data - formatted like actual CSV data would be
         const exampleCSV = `id,title,artist,progression,resolution,key,year,rating,notes
-A,Music for Airports,Brian Eno,,1-4-5-Resolution(3),D,1978,83,First Song by ear.
+A,Music for Airports,Brian Eno,1-4-5-Resolution(3),,D,1978,83,First Song I picked out by ear.
 2,All of Me,John Legend,6-4-1-5,6-4-1-5,A,,,
 3,The Luckiest,Ben Folds,,1/5 Verse every note in the landscape,D,2001,,souveneir/The Luckiest.md
 4,Amazing Grace,Elvis Presley,,,G,,,
