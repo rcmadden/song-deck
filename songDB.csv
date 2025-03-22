@@ -1,11 +1,13 @@
-Index,Card,Title,Artist,Key,BPM,Date,Puzzle Piece,Em&a,Time Signature,BPM,Notes
-1,A,Music for Airports,Brian Eno,D,83,1978,1-4-5-Resolution,,,,First Song by ear.
-2,2,All of Me,John Legend,A,,,6-4-1-5,,,,
-3,3,The Luckiest,Ben Folds,D,,2001,1/5 Verse every note in the landscape,Amanda,,,souveneir/The Luckiest.md
-4,4,Amazing Grace,Elvis Presley,F,,,2 Chord Sandwich,,,,
-5,5,Tennessee Whiskey,Chris Stapleton,A,,,1-2-1 Chord Sandwich,Emma,,,
-6,6,(What a) Wonderful World,Jon Batiste,E,178,2018,Heartbeat,Amanda,,,
-7,7,Dusklight Movement,Jon Batiste,D or G,,2024,,,,,
-8,8,7 Years Old,Lukas Graham,Bb,,,,,,,
-9,9,,,,,,,,,,
-
+Index,Card,Title,Artist,Key,BPM,Date,Puzzle Piece,Em&a,Notes,Time Signature
+1,A,Music for Airports,Brian Eno,D,83,1978,1-4-5-Resolution(3),,First Song by ear.,
+2,2,All of Me,John Legend,A,,2013,6-4-1-5,,,
+3,3,The Luckiest,Ben Folds,D,60,2001,"1\/5,Verse every note in the landscape",Amanda,souveneir/The Luckiest.md,
+4,4,Amazing Grace,Elvis Presley,F,,1972,2 Chord Sandwich,,,
+5,5,Tennessee Whiskey,Chris Stapleton,A,,2015,1-2-1 Chord Sandwich,Emma,,
+6,6,(What a) Wonderful World,Art Garfunkel,,,1977,,,,
+7,7,(What a) Wonderful World,Jon Batiste,E,178,2018,Area 5(1),Amanda,,
+8,8,Dusklight Movement,Jon Batiste,D or G,,2024,,,,
+9,9,7 Years Old,Lukas Graham,Bb,,2015,,,1765363,
+10,10,Ode To Joyful,Jon Batiste,D,,2024,,,,
+11,J,The Rose,Bette Midler,C?,,1979,,,,
+12,Q, , ,,,,,,,
