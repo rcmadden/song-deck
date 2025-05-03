@@ -1,0 +1,47 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2em;
+  }
+  
+  th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  tr:hover {
+    background-color: #f1f1f1;
+    cursor: pointer;
+  }
+  
+  #song-card {
+    border: 1px solid #aaa;
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #fdfdfd;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  #card-title {
+    margin: 0;
+  }
+  
+  #card-meta {
+    font-weight: bold;
+    margin-top: 10px;
+    color: #333;
+  }
+  
+  #card-details {
+    margin-top: 10px;
+  }
+  

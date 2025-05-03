@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Deck</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #333;
+            color: white;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .song-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2px;
+            margin-top: 2px;
+        }
+        
+        .song-cell {
+            background-color: white;
+            color: black;
+            padding: 8px;
+            border: 1px solid #ddd;
+            display: grid;
+            grid-template-columns: 50px 1fr 1fr 50px;
+            align-items: center;
+        }
+        
+        .song-number {
+            display: flex;
+            align-items: center;
+        }
+        
+        .club-symbol {
+            font-size: 20px;
+            margin-right: 5px;
+        }
+        
+        .song-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .song-title {
+            font-weight: bold;
+        }
+        
+        .song-artist {
+            font-style: italic;
+            font-size: 0.9em;
+        }
+        
+        .puzzle-info {
+            text-align: left;
+        }
+        
+        .key-column {
+            text-align: left;
+            font-weight: bold;
+            padding-left: 20px;
+        }
+        
+        .song-detail {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 15px;
+        }
+        
+        .song-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .song-left {
+            display: flex;
+            align-items: center;
+        }
+        /* song page  */
+        .song-letter {
+            font-size: 36px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .song-title-large {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        
+        .song-artist-large {
+            font-size: 18px;
+        }
+        
+        .song-metadata {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .metadata-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .icon {
+            margin-right: 5px;
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .puzzle-section {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+        }
+        
+        .puzzle-icon {
+            margin-right: 10px;
+        }
+        
+        .notes {
+            margin-top: 15px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Main song grid -->
+        <div class="header">
+            <h1>SONG</h1>
+            <h2>🧩</h2>
+            <h2>🔑</h2>
+        </div>
+        
+        <div class="song-grid" id="songGrid">
+            <!-- Songs will be dynamically inserted here -->
+        </div>
+        
+        <!-- Detailed song view (initially hidden, shown when a song is selected) -->
+        <div class="song-detail" id="songDetail" style="display: none;">
+            <!-- Song details will be dynamically inserted here -->
+        </div>
+    </div>
+
+    <script>
+        // Function to parse CSV data
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const result = [];
+            const headers = lines[0].split(',');
+            
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i]) continue;
+                const obj = {};
+                const currentLine = lines[i].split(',');
+                
+                for (let j = 0; j < headers.length; j++) {
+                    obj[headers[j].trim()] = currentLine[j] ? currentLine[j].trim() : '';
+                }
+                result.push(obj);
+            }
+            return result;
+        }
+        
+        // Function to render song grid
+        function renderSongGrid(songs) {
+            const songGrid = document.getElementById('songGrid');
+            songGrid.innerHTML = '';
+            
+            songs.forEach(song => {
+                const songCell = document.createElement('div');
+                songCell.className = 'song-cell';
+                
+                const songNumber = document.createElement('div');
+                songNumber.className = 'song-number';
+                
+                const clubSymbol = document.createElement('span');
+                clubSymbol.className = 'club-symbol';
+                clubSymbol.innerHTML = '&#9827;'; // HTML entity for club symbol
+                
+                const number = document.createElement('span');
+                number.textContent = song.id;
+                
+                songNumber.appendChild(clubSymbol);
+                songNumber.appendChild(number);
+                
+                const songInfo = document.createElement('div');
+                songInfo.className = 'song-info';
+                
+                const songTitle = document.createElement('div');
+                songTitle.className = 'song-title';
+                songTitle.textContent = song.title;
+                
+                const songArtist = document.createElement('div');
+                songArtist.className = 'song-artist';
+                songArtist.textContent = song.artist;
+                
+                songInfo.appendChild(songTitle);
+                songInfo.appendChild(songArtist);
+                
+                const puzzleInfo = document.createElement('div');
+                puzzleInfo.className = 'puzzle-info';
+                
+                if (song.progression) {
+                    puzzleInfo.textContent = song.progression + (song.resolution ? ' - ' + song.resolution : '');
+                }
+                
+                const keyColumn = document.createElement('div');
+                keyColumn.className = 'key-column';
+                keyColumn.textContent = song.key || '';
+                
+                songCell.appendChild(songNumber);
+                songCell.appendChild(songInfo);
+                songCell.appendChild(puzzleInfo);
+                songCell.appendChild(keyColumn);
+                
+                songCell.addEventListener('click', () => showSongDetail(song));
+                
+                songGrid.appendChild(songCell);
+            });
+        }
+        
+        // Function to show song detail
+        function showSongDetail(song) {
+            const songDetail = document.getElementById('songDetail');
+            songDetail.innerHTML = '';
+            
+            const songHeader = document.createElement('div');
+            songHeader.className = 'song-header';
+            
+            const songLeft = document.createElement('div');
+            songLeft.className = 'song-left';
+            
+            const songLetter = document.createElement('div');
+            songLetter.className = 'song-letter';
+            songLetter.textContent = song.id.toString().startsWith('A') || isNaN(song.id) ? song.id : 'A';
+            
+            const clubSymbol = document.createElement('span');
+            clubSymbol.className = 'club-symbol';
+            clubSymbol.innerHTML = '&#9827;'; // HTML entity for club symbol
+            
+            songLeft.appendChild(songLetter);
+            songLeft.appendChild(clubSymbol);
+            
+            const songTitleInfo = document.createElement('div');
+            songTitleInfo.className = 'song-title-info';
+            
+            const songTitleLarge = document.createElement('div');
+            songTitleLarge.className = 'song-title-large';
+            songTitleLarge.textContent = song.title;
+            
+            const songArtistLarge = document.createElement('div');
+            songArtistLarge.className = 'song-artist-large';
+            songArtistLarge.textContent = song.artist;
+            
+            songTitleInfo.appendChild(songTitleLarge);
+            songTitleInfo.appendChild(songArtistLarge);
+            
+            const songMetadata = document.createElement('div');
+            songMetadata.className = 'song-metadata';
+            
+            // Key
+            const keyMetadata = document.createElement('div');
+            keyMetadata.className = 'metadata-item';
+            
+            const keyIcon = document.createElement('span');
+            keyIcon.className = 'icon';
+            keyIcon.textContent = '🔑';
+            
+            const keyText = document.createElement('span');
+            keyText.textContent = song.key || 'D';
+            
+            keyMetadata.appendChild(keyIcon);
+            keyMetadata.appendChild(keyText);
+            
+            // Year
+            const yearMetadata = document.createElement('div');
+            yearMetadata.className = 'metadata-item';
+            
+            const calendarIcon = document.createElement('span');
+            calendarIcon.className = 'icon';
+            calendarIcon.textContent = '📅';
+            
+            const yearText = document.createElement('span');
+            yearText.textContent = song.year || '1978';
+            
+            yearMetadata.appendChild(calendarIcon);
+            yearMetadata.appendChild(yearText);
+            
+            // Rating
+            const ratingMetadata = document.createElement('div');
+            ratingMetadata.className = 'metadata-item';
+            
+            const heartIcon = document.createElement('span');
+            heartIcon.className = 'icon';
+            heartIcon.textContent = '❤️';
+            
+            const ratingText = document.createElement('span');
+            ratingText.textContent = song.rating || '83';
+            
+            ratingMetadata.appendChild(heartIcon);
+            ratingMetadata.appendChild(ratingText);
+            
+            songMetadata.appendChild(keyMetadata);
+            songMetadata.appendChild(yearMetadata);
+            songMetadata.appendChild(ratingMetadata);
+            
+            songTitleInfo.appendChild(songMetadata);
+            
+            songHeader.appendChild(songLeft);
+            songHeader.appendChild(songTitleInfo);
+            
+            // Puzzle section
+            const puzzleSection = document.createElement('div');
+            puzzleSection.className = 'puzzle-section';
+            
+            const puzzleIcon = document.createElement('div');
+            puzzleIcon.className = 'puzzle-icon';
+            puzzleIcon.textContent = '🧩';
+            
+            const progressionText = document.createElement('div');
+            progressionText.textContent = song.progression + (song.resolution ? ' ' + song.resolution : '');
+            
+            puzzleSection.appendChild(puzzleIcon);
+            puzzleSection.appendChild(progressionText);
+            
+            // Notes
+            const notes = document.createElement('div');
+            notes.className = 'notes';
+            notes.textContent = song.notes;
+            
+            songDetail.appendChild(songHeader);
+            songDetail.appendChild(puzzleSection);
+            songDetail.appendChild(notes);
+            
+            songDetail.style.display = 'block';
+        }
+        
+        // Example CSV data - formatted like actual CSV data would be
+        const exampleCSV = `id,title,artist,progression,resolution,key,year,rating,notes
+A,Music for Airports,Brian Eno,1-4-5-Resolution(3),,D,1978,83,First Song I picked out by ear.
+2,All of Me,John Legend,6-4-1-5,,A,,,
+3,The Luckiest,Ben Folds,1\/5,Verse every note in the landscape,D,2001,,souveneir/The Luckiest.md
+4,Amazing Grace,Elvis Presley,,,G,,,
+5,Tennessee Whiskey,Chris Stapleton,2 Chord Sandwich,,A,,,Emma 1-2-21
+6,(What a) Wonderful World,Jon Batiste,Heartbeat,,E,2018,,Amanda
+7,Dusklight Movement,Jon Batiste,,,D G?,2024,,
+8,7 Years Old,Lukas Graham,,,Bb,,,
+9,,,,,,,,,,
+10,,,,,,,,
+J,,,,,,,,
+Q,,,,,,,,
+K,,,,,,,,`;
+
+        
+        // Load and render the songs
+        const songs = parseCSV(exampleCSV);
+        renderSongGrid(songs);
+
+    </script>
+</body>
+</html>
