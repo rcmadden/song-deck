@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <title>Song Deck</title>
     <style>
         body {
@@ -179,82 +180,53 @@
             }
             return '♣️';
         }
-        
-        // Function to load and parse CSV data
-        // This function should read the songDB.csv file into a variable
-        // and then call renderSongTable() to display the data
-        // If the CSV file is not found or cannot be read, it will return an error
-
-        async function loadSongData() {
+              
+       async function loadSongData() {
             try {
                 const response = await fetch('songDB.csv');
+                if (!response.ok) throw new Error('Network response was not ok');
+
                 const csvText = await response.text();
-                
-                // Simple CSV parsing (alternative to using a library)
-                const rows = csvText.split('\n');
-                const headers = rows[0].split(',');
-                
-                for (let i = 1; i < rows.length; i++) {
-                    if (rows[i].trim() === '') continue;
-                    
-                    // Handle possible commas within quoted values
-                    let row = rows[i];
-                    let values = [];
-                    let inQuotes = false;
-                    let currentValue = '';
-                    
-                    for (let j = 0; j < row.length; j++) {
-                        const char = row[j];
-                        
-                        if (char === '"' && (j === 0 || row[j-1] !== '\\')) {
-                            inQuotes = !inQuotes;
-                        } else if (char === ',' && !inQuotes) {
-                            values.push(currentValue.trim());
-                            currentValue = '';
-                        } else {
-                            currentValue += char;
-                        }
-                    }
-                    
-                    values.push(currentValue.trim());
-                    
-                    // Create object from headers and values
-                    const rowData = {};
-                    for (let j = 0; j < headers.length && j < values.length; j++) {
-                        rowData[headers[j].trim()] = values[j].replace(/^"|"$/g, '');
-                    }
-                    
-                    songData.push(rowData);
+
+                const parsed = Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    dynamicTyping: true
+                });
+
+                if (parsed.errors.length > 0) {
+                    console.error('PapaParse errors:', parsed.errors);
+                    throw new Error('Error parsing CSV');
                 }
-                
+
+                songData = parsed.data;
                 renderSongTable();
             } catch (error) {
                 console.error('Error loading song data:', error);
-                // Fallback to hardcoded data if loading fails
-                loadHardcodedData();
+                document.getElementById('songTableBody').innerHTML = `
+                    <tr><td colspan="4">⚠️ Error loading song data.</td></tr>`;
             }
         }
-        
-        
-        function loadHardcodedData() {
-            songData = [  
-                { Index: 1, Card: "A", Title: "Music for Airports", Artist: "Brian Eno", Key: "D", BPM: 83, Date: 1978, "Puzzle Piece": "1-4-5-Resolution(3)", "Em&a": "", Notes: "First Song by ear.", "Time Signature": "" },
-                { Index: 2, Card: "2", Title: "All of Me", Artist: "John Legend", Key: "A", BPM: "", Date: 2013, "Puzzle Piece": "6-4-1-5", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 3, Card: "3", Title: "The Luckiest", Artist: "Ben Folds", Key: "D", BPM: 60, Date: 2001, "Puzzle Piece": "1/5,Verse every note in the landscape", "Em&a": "Amanda", Notes: "https://rcmadden.github.io/song-deck/souveneirs/The-Luckiest.md", "Time Signature": "" },
-                { Index: 4, Card: "4", Title: "Amazing Grace", Artist: "Elvis Presley", Key: "F", BPM: "", Date: 1972, "Puzzle Piece": "2 Chord Sandwich", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 5, Card: "5", Title: "Tennessee Whiskey", Artist: "Chris Stapleton", Key: "A", BPM: "", Date: 2015, "Puzzle Piece": "1-2-1 Chord Sandwich", "Em&a": "Emma", Notes: "", "Time Signature": "" },
-                { Index: 6, Card: "6", Title: "(What a) Wonderful World", Artist: "Art Garfunkel", Key: "", BPM: "", Date: 1977, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 7, Card: "7", Title: "(What a) Wonderful World", Artist: "Jon Batiste", Key: "E", BPM: 178, Date: 2018, "Puzzle Piece": "Area 5(1)", "Em&a": "Amanda", Notes: "", "Time Signature": "" },
-                { Index: 8, Card: "8", Title: "Dusklight Movement", Artist: "Jon Batiste", Key: "D or G", BPM: "", Date: 2024, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 9, Card: "9", Title: "7 Years Old", Artist: "Lukas Graham", Key: "Bb", BPM: "", Date: 2015, "Puzzle Piece": "", "Em&a": "", Notes: "1765363", "Time Signature": "" },
-                { Index: 10, Card: "10", Title: "Ode To Joyful", Artist: "Jon Batiste", Key: "D", BPM: "", Date: 2024, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 11, Card: "J", Title: "The Rose", Artist: "Bette Midler", Key: "C?", BPM: "", Date: 1979, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 12, Card: "Q", Title: "If I Aint Got You", Artist: "0", Key: "", BPM: "", Date: 2002, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-                { Index: 13, Card: "K", Title: "Hold Me", Artist: "Teddy Swims", Key: "", BPM: "", Date: 2022, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" }
-            ];
+
+        // function loadHardcodedData() {
+        //     songData = [  
+        //         { Index: 1, Card: "A", Title: "Music for Airports", Artist: "Brian Eno", Key: "D", BPM: 83, Date: 1978, "Puzzle Piece": "1-4-5-Resolution(3)", "Em&a": "", Notes: "First Song by ear.", "Time Signature": "" },
+        //         { Index: 2, Card: "2", Title: "All of Me", Artist: "John Legend", Key: "A", BPM: "", Date: 2013, "Puzzle Piece": "6-4-1-5", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 3, Card: "3", Title: "The Luckiest", Artist: "Ben Folds", Key: "D", BPM: 60, Date: 2001, "Puzzle Piece": "1/5,Verse every note in the landscape", "Em&a": "Amanda", Notes: "https://rcmadden.github.io/song-deck/souveneirs/The-Luckiest.md", "Time Signature": "" },
+        //         { Index: 4, Card: "4", Title: "Amazing Grace", Artist: "Elvis Presley", Key: "F", BPM: "", Date: 1972, "Puzzle Piece": "2 Chord Sandwich", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 5, Card: "5", Title: "Tennessee Whiskey", Artist: "Chris Stapleton", Key: "A", BPM: "", Date: 2015, "Puzzle Piece": "1-2-1 Chord Sandwich", "Em&a": "Emma", Notes: "", "Time Signature": "" },
+        //         { Index: 6, Card: "6", Title: "(What a) Wonderful World", Artist: "Art Garfunkel", Key: "", BPM: "", Date: 1977, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 7, Card: "7", Title: "(What a) Wonderful World", Artist: "Jon Batiste", Key: "E", BPM: 178, Date: 2018, "Puzzle Piece": "Area 5(1)", "Em&a": "Amanda", Notes: "", "Time Signature": "" },
+        //         { Index: 8, Card: "8", Title: "Dusklight Movement", Artist: "Jon Batiste", Key: "D or G", BPM: "", Date: 2024, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 9, Card: "9", Title: "7 Years Old", Artist: "Lukas Graham", Key: "Bb", BPM: "", Date: 2015, "Puzzle Piece": "", "Em&a": "", Notes: "1765363", "Time Signature": "" },
+        //         { Index: 10, Card: "10", Title: "Ode To Joyful", Artist: "Jon Batiste", Key: "D", BPM: "", Date: 2024, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 11, Card: "J", Title: "The Rose", Artist: "Bette Midler", Key: "C?", BPM: "", Date: 1979, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 12, Card: "Q", Title: "If I Aint Got You", Artist: "0", Key: "", BPM: "", Date: 2002, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
+        //         { Index: 13, Card: "K", Title: "Hold Me", Artist: "Teddy Swims", Key: "", BPM: "", Date: 2022, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" }
+        //     ];
             
-            renderSongTable();
-        }
+        //     renderSongTable();
+        // }
         
         // Function to render the song table
         function renderSongTable() {
