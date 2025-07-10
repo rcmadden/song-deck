@@ -289,18 +289,18 @@
                         <div>🔑 ${song.Key}</div>
                         <div>📅 ${song.Date || ''}</div>
                         <div>❤️ ${song.BPM || ''}</div>
+                        <div class="ema-info">🥁 ${song["Em&a"] || ''}</div>
                     </div>
                 </div>
                 <div class="detail-content">
-                    ${song["Em&a"] ? `<p>Em&a: ${song["Em&a"]}</p>` : ''}
-                    ${song.Notes ? `<p>${song.Notes}</p>` : ''}
-                    ${song["Time Signature"] ? `<p>Time Signature: ${song["Time Signature"]}</p>` : ''}
                     ${song["Puzzle Piece"] ? `
                         <div class="puzzle-piece">
                             <div class="puzzle-icon">🧩</div>
                             <div>${song["Puzzle Piece"]}</div>
                         </div>
                     ` : ''}
+                    ${song["Time Signature"] ? `<p>Time Signature: ${song["Time Signature"]}</p>` : ''}       
+                    ${song.Notes ? `<p>${song.Notes}</p>` : ''}
                 </div>
             `;
             
