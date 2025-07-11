@@ -5,399 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <title>Song Deck</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            background-color: #333;
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 32px;
-        }
-        
-        .header-icons {
-            display: flex;
-            gap: 20px;
-        }
-        
-        .header-nav {
-            display: flex;
-            align-items: center;
-        }
-        
-        .nav-link {
-            color: white;
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-        
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        .account-icon {
-            width: 32px;
-            height: 32px;
-            color: white;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        .account-icon:hover {
-            opacity: 0.8;
-        }
-        
-        .playlist-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .playlist-btn {
-            background: none;
-            border: none;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            padding: 0;
-        }
-        
-        .playlist-btn h1 {
-            margin: 0;
-            font-size: 32px;
-        }
-        
-        .playlist-panel {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            min-width: 150px;
-            display: none;
-        }
-        
-        .playlist-option {
-            display: block;
-            padding: 10px 15px;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .playlist-option:last-child {
-            border-bottom: none;
-        }
-        
-        .playlist-option:hover {
-            background-color: #f5f5f5;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 20px;
-        }
-        
-        .filter-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .filter-btn {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            padding: 8px 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .filter-btn:hover {
-            background-color: #f5f5f5;
-        }
-        
-        .filter-panel {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            z-index: 1000;
-            padding: 15px;
-            min-width: 250px;
-            display: none;
-        }
-        
-        .filter-select {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-            width: 100%;
-            margin-bottom: 10px;
-            background-color: white;
-            cursor: pointer;
-        }
-        
-        .filter-select:focus {
-            outline: none;
-            border-color: #007bff;
-        }
-        
-        .filter-select:last-child {
-            margin-bottom: 0;
-        }
-        
-        .header-icon {
-            width: 24px;
-            height: 24px;
-            color: white;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        .header-icon:hover {
-            opacity: 0.8;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0;
-            background-color: white;
-        }
-        
-        tr {
-            border-bottom: 1px solid #ddd;
-            cursor: pointer;
-        }
-        
-        tr:hover {
-            background-color: #f9f9f9;
-        }
-        
-        th, td {
-            padding: 15px 20px;
-            text-align: left;
-        }
-        
-        .sortable {
-            cursor: pointer;
-            user-select: none;
-        }
-        
-        .sortable:hover {
-            background-color: #f5f5f5;
-        }
-        
-        .sort-indicator {
-            font-size: 12px;
-            margin-left: 5px;
-            opacity: 0.5;
-        }
-        
-        td.club {
-            font-size: 20px;
-        }
-        
-        .song-title {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .song-artist {
-            font-style: italic;
-            color: #666;
-        }
-        
-        .detail-card {
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
-            background-color: white;
-        }
-        
-        .detail-header {
-            display: flex;
-            background-color: #f9f9f9;
-            padding: 15px 20px;
-            align-items: center;
-        }
-        
-        .card-symbol {
-            font-size: 48px;
-            margin-right: 20px;
-        }
-        
-        .card-title {
-            flex-grow: 1;
-        }
-        
-        .card-title h2 {
-            margin: 0 0 5px 0;
-        }
-        
-        .card-title p {
-            margin: 0;
-            font-style: italic;
-            color: #666;
-        }
-        
-        .card-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .card-info div {
-            margin-left: 10px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .detail-content {
-            padding: 20px;
-        }
-        
-        .detail-content p {
-            margin: 0 0 10px 0;
-        }
-        
-        .puzzle-piece {
-            margin-top: 30px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .puzzle-icon {
-            margin-right: 10px;
-            font-size: 24px;
-        }
-        
-        .hidden {
-            display: none;
-        }
-
-        /* Style for notes links */
-        .notes-links {
-            margin-top: 15px;
-        }
-        
-        .notes-links ul {
-            list-style-type: disc;
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        
-        .notes-links li {
-            margin: 5px 0;
-        }
-        
-        .notes-links a {
-            color: #007bff;
-            text-decoration: underline;
-            cursor: pointer;
-        }
-        
-        .notes-links a:hover {
-            color: #0056b3;
-        }
-
-        /* Document viewer styles */
-        .document-viewer {
-            margin-top: 20px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-        
-        .document-viewer iframe {
-            width: 100%;
-            height: 600px;
-            border: none;
-        }
-        
-        .document-viewer img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        
-        .document-viewer .markdown-content {
-            padding: 20px;
-            background-color: #fafafa;
-            font-family: Georgia, serif;
-            line-height: 1.6;
-        }
-        
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                padding: 10px;
-            }
-            
-            .playlist-btn h1 {
-                font-size: 24px;
-            }
-            
-            .controls {
-                justify-content: center;
-            }
-            
-            .filter-panel {
-                right: auto;
-                left: 0;
-                min-width: 200px;
-            }
-            
-            table {
-                font-size: 14px;
-            }
-            
-            th, td {
-                padding: 10px 8px;
-            }
-            
-            .detail-header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .card-symbol {
-                font-size: 36px;
-                margin-bottom: 10px;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -415,12 +23,15 @@
                 </div>
             </div>
             <div class="header-icons">
-                <div class="account-icon" title="Account">
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
-                        <circle cx="16" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
-                        <path d="M8 24c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="2"/>
-                    </svg>
+                <div class="account-section" title="Account">
+                    <div class="account-icon">
+                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="16" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                            <path d="M8 24c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <div class="account-name">Russia M</div>
                 </div>
             </div>
         </div>
@@ -445,6 +56,8 @@
                     <select id="filterEmA" class="filter-select">
                         <option value="">All Em&A</option>
                     </select>
+                    <input type="text" id="searchSong" placeholder="Search songs..." class="filter-input">
+                    <button id="clearFilters" class="clear-filters-btn">Clear All Filters</button>
                 </div>
             </div>
         </div>
@@ -647,7 +260,7 @@
         function populateFilters() {
             const keys = [...new Set(songData.map(song => song.Key || '').filter(key => key))].sort();
             const artists = [...new Set(songData.map(song => song.Artist || '').filter(artist => artist))].sort();
-            const years = [...new Set(songData.map(song => song.Date || '').filter(date => date))].sort();
+            const years = [...new Set(songData.map(song => String(song.Date || '')).filter(date => date))].sort();
             const emAs = [...new Set(songData.map(song => song['Em&a'] || '').filter(ema => ema))].sort();
             
             // Populate Key filter
@@ -697,17 +310,57 @@
             const artistFilter = document.getElementById('filterArtist').value;
             const yearFilter = document.getElementById('filterYear').value;
             const emAFilter = document.getElementById('filterEmA').value;
+            const searchFilter = document.getElementById('searchSong').value.toLowerCase();
             
             filteredData = songData.filter(song => {
                 const keyMatch = !keyFilter || (song.Key || '') === keyFilter;
                 const artistMatch = !artistFilter || (song.Artist || '') === artistFilter;
-                const yearMatch = !yearFilter || (song.Date || '') === yearFilter;
+                // Convert both to strings for comparison since Date might be a number
+                const yearMatch = !yearFilter || String(song.Date || '') === yearFilter;
                 const emAMatch = !emAFilter || (song['Em&a'] || '') === emAFilter;
+                // Search in both title and artist
+                const searchMatch = !searchFilter || 
+                    (song.Title || '').toLowerCase().includes(searchFilter) ||
+                    (song.Artist || '').toLowerCase().includes(searchFilter);
                 
-                return keyMatch && artistMatch && yearMatch && emAMatch;
+                return keyMatch && artistMatch && yearMatch && emAMatch && searchMatch;
             });
             
             renderSongTable();
+            updateClearButtonStyle();
+        }
+        
+        // Function to check if any filters are active
+        function hasActiveFilters() {
+            return document.getElementById('filterKey').value !== '' ||
+                   document.getElementById('filterArtist').value !== '' ||
+                   document.getElementById('filterYear').value !== '' ||
+                   document.getElementById('filterEmA').value !== '' ||
+                   document.getElementById('searchSong').value !== '';
+        }
+        
+        // Function to update clear button styling
+        function updateClearButtonStyle() {
+            const clearButton = document.getElementById('clearFilters');
+            if (hasActiveFilters()) {
+                clearButton.classList.add('has-filters');
+            } else {
+                clearButton.classList.remove('has-filters');
+            }
+        }
+        
+        // Function to clear all filters
+        function clearAllFilters() {
+            document.getElementById('filterKey').value = '';
+            document.getElementById('filterArtist').value = '';
+            document.getElementById('filterYear').value = '';
+            document.getElementById('filterEmA').value = '';
+            document.getElementById('searchSong').value = '';
+            
+            // Reset to show all data
+            filteredData = [...songData];
+            renderSongTable();
+            updateClearButtonStyle();
         }
         
         // Function to setup event listeners
@@ -725,6 +378,13 @@
             document.getElementById('filterArtist').addEventListener('change', filterData);
             document.getElementById('filterYear').addEventListener('change', filterData);
             document.getElementById('filterEmA').addEventListener('change', filterData);
+            document.getElementById('searchSong').addEventListener('input', filterData);
+            
+            // Clear filters functionality
+            document.getElementById('clearFilters').addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearAllFilters();
+            });
             
             // Filter dropdown
             document.getElementById('filterBtn').addEventListener('click', (e) => {
