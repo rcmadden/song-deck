@@ -87,6 +87,7 @@
         let filteredData = [];
         let sortColumn = null;
         let sortDirection = 'asc';
+        let currentPlaylist = 'my-deck'; // Track current playlist
         
         // Function to get suit symbol based on index
         function getSuitSymbol(index, card) {
@@ -196,11 +197,21 @@
 
                 if (parsed.errors.length > 0) {
                     console.error('PapaParse errors:', parsed.errors);
-                    throw new Error('Error parsing CSV');
+                    // Don't throw error for minor parsing issues, just log them
+                    parsed.errors.forEach(error => {
+                        console.warn(`CSV parsing warning on row ${error.row}: ${error.message}`);
+                    });
                 }
 
                 songData = parsed.data;
-                filteredData = [...songData];
+                
+                // Initialize with My Deck playlist
+                currentPlaylist = 'my-deck';
+                filteredData = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('My Deck');
+                });
+                
                 populateFilters();
                 renderSongTable();
                 setupEventListeners();
@@ -273,10 +284,24 @@
         
         // Function to populate filter dropdowns
         function populateFilters() {
-            const keys = [...new Set(songData.map(song => song.Key || '').filter(key => key))].sort();
-            const artists = [...new Set(songData.map(song => song.Artist || '').filter(artist => artist))].sort();
-            const years = [...new Set(songData.map(song => String(song.Date || '')).filter(date => date))].sort();
-            const emAs = [...new Set(songData.map(song => song['Em&a'] || '').filter(ema => ema))].sort();
+            // Get songs for current playlist only
+            let playlistSongs;
+            if (currentPlaylist === '8-track') {
+                playlistSongs = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('8-Track');
+                });
+            } else {
+                playlistSongs = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('My Deck');
+                });
+            }
+            
+            const keys = [...new Set(playlistSongs.map(song => song.Key || '').filter(key => key))].sort();
+            const artists = [...new Set(playlistSongs.map(song => song.Artist || '').filter(artist => artist))].sort();
+            const years = [...new Set(playlistSongs.map(song => String(song.Date || '')).filter(date => date))].sort();
+            const emAs = [...new Set(playlistSongs.map(song => song['Em&a'] || '').filter(ema => ema))].sort();
             
             // Populate Key filter
             const keySelect = document.getElementById('filterKey');
@@ -327,19 +352,37 @@
             const emAFilter = document.getElementById('filterEmA').value;
             const searchFilter = document.getElementById('searchSong').value.toLowerCase();
             
-            filteredData = songData.filter(song => {
+            // Start with songs from current playlist
+            let playlistSongs;
+            if (currentPlaylist === '8-track') {
+                playlistSongs = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('8-Track');
+                });
+            } else {
+                playlistSongs = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('My Deck');
+                });
+            }
+            
+            // Then apply other filters
+            filteredData = playlistSongs.filter(song => {
                 const keyMatch = !keyFilter || (song.Key || '') === keyFilter;
                 const artistMatch = !artistFilter || (song.Artist || '') === artistFilter;
-                // Convert both to strings for comparison since Date might be a number
                 const yearMatch = !yearFilter || String(song.Date || '') === yearFilter;
                 const emAMatch = !emAFilter || (song['Em&a'] || '') === emAFilter;
-                // Search in both title and artist
                 const searchMatch = !searchFilter || 
                     (song.Title || '').toLowerCase().includes(searchFilter) ||
                     (song.Artist || '').toLowerCase().includes(searchFilter);
                 
                 return keyMatch && artistMatch && yearMatch && emAMatch && searchMatch;
             });
+            
+            // Apply custom ordering for 8-Track
+            if (currentPlaylist === '8-track') {
+                apply8TrackOrdering();
+            }
             
             renderSongTable();
             updateClearButtonStyle();
@@ -372,8 +415,20 @@
             document.getElementById('filterEmA').value = '';
             document.getElementById('searchSong').value = '';
             
-            // Reset to show all data
-            filteredData = [...songData];
+            // Reset to show all songs from current playlist
+            if (currentPlaylist === '8-track') {
+                filteredData = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('8-Track');
+                });
+                apply8TrackOrdering();
+            } else {
+                filteredData = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('My Deck');
+                });
+            }
+            
             renderSongTable();
             updateClearButtonStyle();
         }
@@ -420,6 +475,7 @@
                 option.addEventListener('click', (e) => {
                     e.preventDefault();
                     const playlist = e.target.getAttribute('data-playlist');
+                    console.log('Switching to playlist:', playlist); // Debug log
                     switchPlaylist(playlist);
                     document.getElementById('playlistPanel').style.display = 'none';
                 });
@@ -434,18 +490,72 @@
         
         // Function to switch playlists
         function switchPlaylist(playlist) {
+            console.log('switchPlaylist called with:', playlist); // Debug log
             const playlistBtn = document.querySelector('.playlist-btn h1');
+            currentPlaylist = playlist; // Store current playlist
+            
             if (playlist === '8-track') {
                 playlistBtn.textContent = '8-Track';
-                // Here you would load 8-Track data - for now just show message
-                document.getElementById('songTableBody').innerHTML = `
-                    <tr><td colspan="4">🎵 8-Track playlist coming soon...</td></tr>`;
+                // Filter songs that include '8-Track' in their Playlists column
+                filteredData = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('8-Track');
+                });
+                
+                console.log('8-Track songs found:', filteredData.length); // Debug log
+                
+                // Apply custom ordering for 8-Track playlist
+                apply8TrackOrdering();
+                
+                // Hide filter controls for 8-Track
+                document.querySelector('.controls').style.display = 'none';
             } else {
                 playlistBtn.textContent = 'My Deck';
-                // Reset to original data
-                filteredData = [...songData];
-                renderSongTable();
+                // Filter songs that include 'My Deck' in their Playlists column
+                filteredData = songData.filter(song => {
+                    const playlists = song.Playlists || '';
+                    return playlists.includes('My Deck');
+                });
+                
+                // Show filter controls for My Deck
+                document.querySelector('.controls').style.display = 'block';
             }
+            
+            // Clear any active filters and re-apply them to the new playlist
+            clearAllFilters();
+            renderSongTable();
+            populateFilters(); // Repopulate filters for current playlist
+        }
+        
+        // Function to apply custom ordering for 8-Track playlist
+        function apply8TrackOrdering() {
+            const trackOrder = [
+                'Nocturne in D Minor',
+                'All of Me', 
+                'If I Aint Got You',
+                'Tennessee Whiskey',
+                'Hold Me',
+                'Christmas Time Is Here',
+                'Ode To Joyful',
+                'Piano Sonata No. 14'
+            ];
+            
+            filteredData.sort((a, b) => {
+                const aIndex = trackOrder.indexOf(a.Title);
+                const bIndex = trackOrder.indexOf(b.Title);
+                
+                // If both songs are in the custom order, sort by that order
+                if (aIndex !== -1 && bIndex !== -1) {
+                    return aIndex - bIndex;
+                }
+                
+                // If only one is in the custom order, prioritize it
+                if (aIndex !== -1) return -1;
+                if (bIndex !== -1) return 1;
+                
+                // If neither is in the custom order, sort by title
+                return (a.Title || '').localeCompare(b.Title || '');
+            });
         }
         
         // Function to render the song table
@@ -453,7 +563,7 @@
             const tableBody = document.getElementById('songTableBody');
             tableBody.innerHTML = '';
             
-            filteredData.forEach(song => {
+            filteredData.forEach((song, index) => {
                 if (!song.Title && !song.Artist) return; // Skip empty rows
                 
                 const row = document.createElement('tr');
@@ -461,7 +571,13 @@
                 
                 const clubCell = document.createElement('td');
                 clubCell.className = 'club';
-                clubCell.textContent = getSuitSymbol(song.Index, song.Card) + ' ' + song.Card;
+                
+                // Show track numbers for 8-Track playlist, cards for others
+                if (currentPlaylist === '8-track') {
+                    clubCell.textContent = (index + 1).toString();
+                } else {
+                    clubCell.textContent = getSuitSymbol(song.Index, song.Card) + ' ' + song.Card;
+                }
                 row.appendChild(clubCell);
                 
                 const infoCell = document.createElement('td');
@@ -501,10 +617,19 @@
             // Convert notes to clickable links
             const notesHTML = convertNotesToLinks(song.Notes);
             
+            // Get the track number for 8-track playlist
+            let cardDisplay = '';
+            if (currentPlaylist === '8-track') {
+                const trackIndex = filteredData.findIndex(s => s.Index === song.Index) + 1;
+                cardDisplay = `${trackIndex} ${getSuitSymbol(song.Index, song.Card)} ${song.Card}`;
+            } else {
+                cardDisplay = `${getSuitSymbol(song.Index, song.Card)} ${song.Card}`;
+            }
+            
             // Format the card content
             detailCard.innerHTML = `
                 <div class="detail-header">
-                    <div class="card-symbol">${getSuitSymbol(song.Card)} ${song.Card}</div>
+                    <div class="card-symbol">${cardDisplay}</div>
                     <div class="card-title">
                         <h2>${song.Title}</h2>
                         <p>${song.Artist}</p>
