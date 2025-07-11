@@ -67,25 +67,126 @@
             opacity: 0.8;
         }
         
-        .filters {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .playlist-dropdown {
+            position: relative;
+            display: inline-block;
         }
         
-        .filter-input {
+        .playlist-btn {
+            background: none;
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 0;
+        }
+        
+        .playlist-btn h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        
+        .playlist-panel {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 150px;
+            display: none;
+        }
+        
+        .playlist-option {
+            display: block;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .playlist-option:last-child {
+            border-bottom: none;
+        }
+        
+        .playlist-option:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-btn {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .filter-btn:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .filter-panel {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+            padding: 15px;
+            min-width: 250px;
+            display: none;
+        }
+        
+        .filter-select {
             padding: 8px 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
-            flex: 1;
-            min-width: 150px;
+            width: 100%;
+            margin-bottom: 10px;
+            background-color: white;
+            cursor: pointer;
         }
         
-        .filter-input:focus {
+        .filter-select:focus {
             outline: none;
             border-color: #007bff;
+        }
+        
+        .filter-select:last-child {
+            margin-bottom: 0;
+        }
+        
+        .header-icon {
+            width: 24px;
+            height: 24px;
+            color: white;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .header-icon:hover {
+            opacity: 0.8;
         }
         
         table {
@@ -264,17 +365,18 @@
                 padding: 10px;
             }
             
-            .header h1 {
+            .playlist-btn h1 {
                 font-size: 24px;
             }
             
-            .filters {
-                flex-direction: column;
-                gap: 8px;
+            .controls {
+                justify-content: center;
             }
             
-            .filter-input {
-                min-width: unset;
+            .filter-panel {
+                right: auto;
+                left: 0;
+                min-width: 200px;
             }
             
             table {
@@ -313,11 +415,6 @@
                 </div>
             </div>
             <div class="header-icons">
-                <div class="header-icon" title="Key">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
                 <div class="account-icon" title="Account">
                     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
@@ -336,10 +433,18 @@
                     </svg>
                 </button>
                 <div class="filter-panel" id="filterPanel">
-                    <input type="text" id="filterKey" placeholder="Filter by Key" class="filter-input">
-                    <input type="text" id="filterArtist" placeholder="Filter by Artist" class="filter-input">
-                    <input type="text" id="filterYear" placeholder="Filter by Year" class="filter-input">
-                    <input type="text" id="filterEmA" placeholder="Filter by Em&A" class="filter-input">
+                    <select id="filterKey" class="filter-select">
+                        <option value="">All Keys</option>
+                    </select>
+                    <select id="filterArtist" class="filter-select">
+                        <option value="">All Artists</option>
+                    </select>
+                    <select id="filterYear" class="filter-select">
+                        <option value="">All Years</option>
+                    </select>
+                    <select id="filterEmA" class="filter-select">
+                        <option value="">All Em&A</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -347,10 +452,10 @@
         <table id="songTable">
             <thead>
                 <tr>
-                    <th><span role="img" aria-label="Playing card">🃏</span></th>
+                    <th class="sortable" data-sort="card"><span role="img" aria-label="Playing card">🃏</span> <span class="sort-indicator">↕</span></th>
                     <th class="sortable" data-sort="song">Song <span class="sort-indicator">↕</span></th>
                     <th><span role="img" aria-label="Puzzle piece">🧩</span></th>
-                    <th class="sortable" data-sort="key">Key <span class="sort-indicator">↕</span></th>
+                    <th class="sortable" data-sort="key">🔑 Key <span class="sort-indicator">↕</span></th>
                 </tr>
             </thead>
             <tbody id="songTableBody">
@@ -468,6 +573,7 @@
 
                 songData = parsed.data;
                 filteredData = [...songData];
+                populateFilters();
                 renderSongTable();
                 setupEventListeners();
             } catch (error) {
@@ -479,17 +585,27 @@
         
         // Function to sort data
         function sortData(column) {
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            // If card column is clicked, clear other sorts
+            if (column === 'card') {
+                sortColumn = 'card';
+                sortDirection = sortColumn === 'card' && sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
-                sortColumn = column;
-                sortDirection = 'asc';
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
             }
             
             filteredData.sort((a, b) => {
                 let aVal, bVal;
                 
-                if (column === 'song') {
+                if (column === 'card') {
+                    // Sort by Index (numeric)
+                    aVal = parseInt(a.Index) || 0;
+                    bVal = parseInt(b.Index) || 0;
+                } else if (column === 'song') {
                     aVal = (a.Title || '').toLowerCase();
                     bVal = (b.Title || '').toLowerCase();
                 } else if (column === 'key') {
@@ -527,18 +643,66 @@
             }
         }
         
+        // Function to populate filter dropdowns
+        function populateFilters() {
+            const keys = [...new Set(songData.map(song => song.Key || '').filter(key => key))].sort();
+            const artists = [...new Set(songData.map(song => song.Artist || '').filter(artist => artist))].sort();
+            const years = [...new Set(songData.map(song => song.Date || '').filter(date => date))].sort();
+            const emAs = [...new Set(songData.map(song => song['Em&a'] || '').filter(ema => ema))].sort();
+            
+            // Populate Key filter
+            const keySelect = document.getElementById('filterKey');
+            keySelect.innerHTML = '<option value="">All Keys</option>';
+            keys.forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = key;
+                keySelect.appendChild(option);
+            });
+            
+            // Populate Artist filter
+            const artistSelect = document.getElementById('filterArtist');
+            artistSelect.innerHTML = '<option value="">All Artists</option>';
+            artists.forEach(artist => {
+                const option = document.createElement('option');
+                option.value = artist;
+                option.textContent = artist;
+                artistSelect.appendChild(option);
+            });
+            
+            // Populate Year filter
+            const yearSelect = document.getElementById('filterYear');
+            yearSelect.innerHTML = '<option value="">All Years</option>';
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+            
+            // Populate Em&A filter
+            const emASelect = document.getElementById('filterEmA');
+            emASelect.innerHTML = '<option value="">All Em&A</option>';
+            emAs.forEach(ema => {
+                const option = document.createElement('option');
+                option.value = ema;
+                option.textContent = ema;
+                emASelect.appendChild(option);
+            });
+        }
+        
         // Function to filter data
         function filterData() {
-            const keyFilter = document.getElementById('filterKey').value.toLowerCase();
-            const artistFilter = document.getElementById('filterArtist').value.toLowerCase();
-            const yearFilter = document.getElementById('filterYear').value.toLowerCase();
-            const emAFilter = document.getElementById('filterEmA').value.toLowerCase();
+            const keyFilter = document.getElementById('filterKey').value;
+            const artistFilter = document.getElementById('filterArtist').value;
+            const yearFilter = document.getElementById('filterYear').value;
+            const emAFilter = document.getElementById('filterEmA').value;
             
             filteredData = songData.filter(song => {
-                const keyMatch = !keyFilter || (song.Key || '').toLowerCase().includes(keyFilter);
-                const artistMatch = !artistFilter || (song.Artist || '').toLowerCase().includes(artistFilter);
-                const yearMatch = !yearFilter || (song.Date || '').toLowerCase().includes(yearFilter);
-                const emAMatch = !emAFilter || (song['Em&a'] || '').toLowerCase().includes(emAFilter);
+                const keyMatch = !keyFilter || (song.Key || '') === keyFilter;
+                const artistMatch = !artistFilter || (song.Artist || '') === artistFilter;
+                const yearMatch = !yearFilter || (song.Date || '') === yearFilter;
+                const emAMatch = !emAFilter || (song['Em&a'] || '') === emAFilter;
                 
                 return keyMatch && artistMatch && yearMatch && emAMatch;
             });
@@ -557,10 +721,56 @@
             });
             
             // Filter functionality
-            document.getElementById('filterKey').addEventListener('input', filterData);
-            document.getElementById('filterArtist').addEventListener('input', filterData);
-            document.getElementById('filterYear').addEventListener('input', filterData);
-            document.getElementById('filterEmA').addEventListener('input', filterData);
+            document.getElementById('filterKey').addEventListener('change', filterData);
+            document.getElementById('filterArtist').addEventListener('change', filterData);
+            document.getElementById('filterYear').addEventListener('change', filterData);
+            document.getElementById('filterEmA').addEventListener('change', filterData);
+            
+            // Filter dropdown
+            document.getElementById('filterBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const panel = document.getElementById('filterPanel');
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // Playlist dropdown
+            document.getElementById('playlistBtn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const panel = document.getElementById('playlistPanel');
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // Playlist options
+            document.querySelectorAll('.playlist-option').forEach(option => {
+                option.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const playlist = e.target.getAttribute('data-playlist');
+                    switchPlaylist(playlist);
+                    document.getElementById('playlistPanel').style.display = 'none';
+                });
+            });
+            
+            // Close dropdowns when clicking outside
+            document.addEventListener('click', () => {
+                document.getElementById('filterPanel').style.display = 'none';
+                document.getElementById('playlistPanel').style.display = 'none';
+            });
+        }
+        
+        // Function to switch playlists
+        function switchPlaylist(playlist) {
+            const playlistBtn = document.querySelector('.playlist-btn h1');
+            if (playlist === '8-track') {
+                playlistBtn.textContent = '8-Track';
+                // Here you would load 8-Track data - for now just show message
+                document.getElementById('songTableBody').innerHTML = `
+                    <tr><td colspan="4">🎵 8-Track playlist coming soon...</td></tr>`;
+            } else {
+                playlistBtn.textContent = 'My Deck';
+                // Reset to original data
+                filteredData = [...songData];
+                renderSongTable();
+            }
         }
         
         // Function to render the song table
@@ -605,6 +815,11 @@
         
         // Function to show song details
         function showSongDetails(song) {
+            // Clear any active sort when card is clicked
+            sortColumn = null;
+            sortDirection = 'asc';
+            updateSortIndicators();
+            
             const detailCard = document.getElementById('detailCard');
             detailCard.classList.remove('hidden');
             
