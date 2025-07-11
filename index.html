@@ -497,11 +497,21 @@
                 panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
             });
             
+            // Prevent filter panel from closing when clicking inside it
+            document.getElementById('filterPanel').addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+            
             // Playlist dropdown
             document.getElementById('playlistBtn').addEventListener('click', (e) => {
                 e.stopPropagation();
                 const panel = document.getElementById('playlistPanel');
                 panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // Prevent playlist panel from closing when clicking inside it
+            document.getElementById('playlistPanel').addEventListener('click', (e) => {
+                e.stopPropagation();
             });
             
             // Playlist options
