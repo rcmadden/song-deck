@@ -23,6 +23,11 @@
                 </div>
             </div>
             <div class="header-icons">
+                <button class="theme-toggle" title="Toggle theme" id="themeToggle">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 2V4M10 16V18M4 10H2M6.31 6.31L4.93 4.93M13.69 6.31L15.07 4.93M6.31 13.69L4.93 15.07M13.69 13.69L15.07 15.07M18 10H16M13 10A3 3 0 1 1 7 10A3 3 0 0 1 13 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                </button>
                 <div class="account-section" title="Account">
                     <div class="account-icon">
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -62,22 +67,24 @@
             </div>
         </div>
         
-        <table id="songTable">
-            <thead>
-                <tr>
-                    <th class="sortable" data-sort="card"><span role="img" aria-label="Playing card">🃏</span> <span class="sort-indicator">↕</span></th>
-                    <th class="sortable" data-sort="song">Song <span class="sort-indicator">↕</span></th>
-                    <th><span role="img" aria-label="Puzzle piece">🧩</span></th>
-                    <th class="sortable" data-sort="key">🔑 Key <span class="sort-indicator">↕</span></th>
-                </tr>
-            </thead>
-            <tbody id="songTableBody">
-                <!-- Table rows will be populated by JavaScript -->
-            </tbody>
-        </table>
-        
-        <div id="detailCard" class="detail-card hidden">
-            <!-- Card details will be populated by JavaScript -->
+        <div class="main-content">
+            <table id="songTable">
+                <thead>
+                    <tr>
+                        <th class="sortable" data-sort="card"><span role="img" aria-label="Playing card">🃏</span> <span class="sort-indicator">↕</span></th>
+                        <th class="sortable" data-sort="song">Song <span class="sort-indicator">↕</span></th>
+                        <th><span role="img" aria-label="Puzzle piece">🧩</span></th>
+                        <th class="sortable" data-sort="key">🔑 Key <span class="sort-indicator">↕</span></th>
+                    </tr>
+                </thead>
+                <tbody id="songTableBody">
+                    <!-- Table rows will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div id="detailCard" class="detail-card hidden">
+                <!-- Card details will be populated by JavaScript -->
+            </div>
         </div>
     </div>
 
@@ -88,6 +95,33 @@
         let sortColumn = null;
         let sortDirection = 'asc';
         let currentPlaylist = 'my-deck'; // Track current playlist
+        
+        // Theme management
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+        
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        }
+        
+        function updateThemeIcon(theme) {
+            const themeButton = document.getElementById('themeToggle');
+            const icon = theme === 'dark' ? 
+                `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>` :
+                `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 2V4M10 16V18M4 10H2M6.31 6.31L4.93 4.93M13.69 6.31L15.07 4.93M6.31 13.69L4.93 15.07M13.69 13.69L15.07 15.07M18 10H16M13 10A3 3 0 1 1 7 10A3 3 0 0 1 13 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>`;
+            themeButton.innerHTML = icon;
+        }
         
         // Function to get suit symbol based on index
         function getSuitSymbol(index, card) {
@@ -481,6 +515,9 @@
                 });
             });
             
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
             // Close dropdowns when clicking outside
             document.addEventListener('click', () => {
                 document.getElementById('filterPanel').style.display = 'none';
@@ -660,6 +697,9 @@
         
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
+            // Initialize theme
+            initializeTheme();
+            
             // Try to load CSV data
             loadSongData();
         });
