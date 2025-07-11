@@ -143,6 +143,58 @@
         .hidden {
             display: none;
         }
+
+        /* Style for notes links */
+        .notes-links {
+            margin-top: 15px;
+        }
+        
+        .notes-links ul {
+            list-style-type: disc;
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        
+        .notes-links li {
+            margin: 5px 0;
+        }
+        
+        .notes-links a {
+            color: #007bff;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        
+        .notes-links a:hover {
+            color: #0056b3;
+        }
+
+        /* Document viewer styles */
+        .document-viewer {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .document-viewer iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+        
+        .document-viewer img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .document-viewer .markdown-content {
+            padding: 20px;
+            background-color: #fafafa;
+            font-family: Georgia, serif;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -180,8 +232,75 @@
             }
             return '♣️';
         }
+
+        // Function to convert notes text to clickable links
+        function convertNotesToLinks(notesText) {
+            if (!notesText) return '';
+            
+            // Split multiple URLs by comma and space
+            const parts = notesText.split(', ');
+            const linkElements = [];
+            const urls = [];
+            
+            parts.forEach(part => {
+                part = part.trim();
+                if (part.startsWith('http')) {
+                    // Extract filename for better link text
+                    const filename = part.split('/').pop();
+                    // Remove file extension and replace underscores with spaces for display
+                    const displayName = filename.replace(/\.[^/.]+$/, "").replace(/_/g, ' ');
+                    linkElements.push(`<li><a href="#" onclick="loadDocument('${part}', '${filename}'); return false;">${displayName}</a></li>`);
+                    urls.push(part);
+                } else if (part) {
+                    // Non-URL text (like "First Song by ear." or numbers)
+                    linkElements.push(`<li>${part}</li>`);
+                }
+            });
+            
+            if (linkElements.length > 0) {
+                return `<ul>${linkElements.join('')}</ul>`;
+            }
+            return '';
+        }
+
+        // Function to load and display document in the detail card
+        function loadDocument(url, filename) {
+            const documentViewer = document.getElementById('documentViewer');
+            documentViewer.style.display = 'block';
+            const fileExtension = filename.split('.').pop().toLowerCase();
+            
+            if (fileExtension === 'pdf') {
+                // For PDFs, use an iframe
+                documentViewer.innerHTML = `<iframe src="${url}" title="${filename}"></iframe>`;
+            } else if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(fileExtension)) {
+                // For images, display directly
+                documentViewer.innerHTML = `<img src="${url}" alt="${filename}" />`;
+            } else if (fileExtension === 'md') {
+                // For markdown files, fetch and display (basic rendering)
+                fetch(url)
+                    .then(response => response.text())
+                    .then(text => {
+                        // Basic markdown to HTML conversion (you could use a proper markdown parser here)
+                        const htmlContent = text
+                            .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                            .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                            .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                            .replace(/\n/g, '<br>');
+                        
+                        documentViewer.innerHTML = `<div class="markdown-content">${htmlContent}</div>`;
+                    })
+                    .catch(error => {
+                        documentViewer.innerHTML = `<div class="markdown-content">Error loading document: ${error.message}</div>`;
+                    });
+            } else {
+                // For other file types, try iframe
+                documentViewer.innerHTML = `<iframe src="${url}" title="${filename}"></iframe>`;
+            }
+        }
               
-       async function loadSongData() {
+        async function loadSongData() {
             try {
                 const response = await fetch('songDB.csv');
                 if (!response.ok) throw new Error('Network response was not ok');
@@ -207,26 +326,6 @@
                     <tr><td colspan="4">⚠️ Error loading song data.</td></tr>`;
             }
         }
-
-        // function loadHardcodedData() {
-        //     songData = [  
-        //         { Index: 1, Card: "A", Title: "Music for Airports", Artist: "Brian Eno", Key: "D", BPM: 83, Date: 1978, "Puzzle Piece": "1-4-5-Resolution(3)", "Em&a": "", Notes: "First Song by ear.", "Time Signature": "" },
-        //         { Index: 2, Card: "2", Title: "All of Me", Artist: "John Legend", Key: "A", BPM: "", Date: 2013, "Puzzle Piece": "6-4-1-5", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 3, Card: "3", Title: "The Luckiest", Artist: "Ben Folds", Key: "D", BPM: 60, Date: 2001, "Puzzle Piece": "1/5,Verse every note in the landscape", "Em&a": "Amanda", Notes: "https://rcmadden.github.io/song-deck/souveneirs/The-Luckiest.md", "Time Signature": "" },
-        //         { Index: 4, Card: "4", Title: "Amazing Grace", Artist: "Elvis Presley", Key: "F", BPM: "", Date: 1972, "Puzzle Piece": "2 Chord Sandwich", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 5, Card: "5", Title: "Tennessee Whiskey", Artist: "Chris Stapleton", Key: "A", BPM: "", Date: 2015, "Puzzle Piece": "1-2-1 Chord Sandwich", "Em&a": "Emma", Notes: "", "Time Signature": "" },
-        //         { Index: 6, Card: "6", Title: "(What a) Wonderful World", Artist: "Art Garfunkel", Key: "", BPM: "", Date: 1977, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 7, Card: "7", Title: "(What a) Wonderful World", Artist: "Jon Batiste", Key: "E", BPM: 178, Date: 2018, "Puzzle Piece": "Area 5(1)", "Em&a": "Amanda", Notes: "", "Time Signature": "" },
-        //         { Index: 8, Card: "8", Title: "Dusklight Movement", Artist: "Jon Batiste", Key: "D or G", BPM: "", Date: 2024, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 9, Card: "9", Title: "7 Years Old", Artist: "Lukas Graham", Key: "Bb", BPM: "", Date: 2015, "Puzzle Piece": "", "Em&a": "", Notes: "1765363", "Time Signature": "" },
-        //         { Index: 10, Card: "10", Title: "Ode To Joyful", Artist: "Jon Batiste", Key: "D", BPM: "", Date: 2024, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 11, Card: "J", Title: "The Rose", Artist: "Bette Midler", Key: "C?", BPM: "", Date: 1979, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 12, Card: "Q", Title: "If I Aint Got You", Artist: "0", Key: "", BPM: "", Date: 2002, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" },
-        //         { Index: 13, Card: "K", Title: "Hold Me", Artist: "Teddy Swims", Key: "", BPM: "", Date: 2022, "Puzzle Piece": "", "Em&a": "", Notes: "", "Time Signature": "" }
-        //     ];
-            
-        //     renderSongTable();
-        // }
         
         // Function to render the song table
         function renderSongTable() {
@@ -263,10 +362,6 @@
                 const keyCell = document.createElement('td');
                 keyCell.textContent = song.Key || '';
                 row.appendChild(keyCell);
-
-                // const rhythmCell = document.createElement('td');
-                // rhythmCell.textContent = song["Em&a"] || '';
-                // row.appendChild(rhythmCell);
                 
                 tableBody.appendChild(row);
             });
@@ -276,6 +371,9 @@
         function showSongDetails(song) {
             const detailCard = document.getElementById('detailCard');
             detailCard.classList.remove('hidden');
+            
+            // Convert notes to clickable links
+            const notesHTML = convertNotesToLinks(song.Notes);
             
             // Format the card content
             detailCard.innerHTML = `
@@ -300,7 +398,8 @@
                         </div>
                     ` : ''}
                     ${song["Time Signature"] ? `<p>Time Signature: ${song["Time Signature"]}</p>` : ''}       
-                    ${song.Notes ? `<p>${song.Notes}</p>` : ''}
+                    ${notesHTML ? `<div class="notes-links">${notesHTML}</div>` : ''}
+                    <div id="documentViewer" class="document-viewer" style="display: none;"></div>
                 </div>
             `;
             
@@ -310,7 +409,7 @@
         
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
-            // Try to load CSV data, with fallback to hardcoded data
+            // Try to load CSV data
             loadSongData();
         });
     </script>
