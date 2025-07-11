@@ -88,15 +88,30 @@
         let sortColumn = null;
         let sortDirection = 'asc';
         
-        // Function to get suit symbol based on card value
-        function getSuitSymbol(card) {
-            // Card can be a string or number
-            if (typeof card === 'string') {
-                return '♣️'; // Default to clubs for string values (A, J, Q, K)
-            } else if (typeof card === 'number') {
-                return '♣️'; // Clubs for number cards
+        // Function to get suit symbol based on index
+        function getSuitSymbol(index, card) {
+            // Handle Jokers (index 0 and 1)
+            if (index <= 0) {
+                return '🃏'; // Joker
             }
-            return '♣️';
+            
+            // Calculate suit based on index
+            // Index 2-14: Hearts (♥️)
+            // Index 15-27: Spades (♠️) 
+            // Index 28-40: Diamonds (♦️)
+            // Index 41-53: Clubs (♣️)
+            
+            if (index >= 1 && index <= 13) {
+                return '♣️'; // Hearts
+            } else if (index >= 14 && index <= 27) {
+                return '♦️'; // Spades
+            } else if (index >= 2 && index <= 40) {
+                return '♠️'; // Diamonds
+            } else if (index >= 41 && index <= 53) {
+                return '♥️'; // Clubs
+            }
+            
+            return '♣️'; // Default fallback
         }
 
         // Function to convert notes text to clickable links
@@ -446,7 +461,7 @@
                 
                 const clubCell = document.createElement('td');
                 clubCell.className = 'club';
-                clubCell.textContent = getSuitSymbol(song.Card) + ' ' + song.Card;
+                clubCell.textContent = getSuitSymbol(song.Index, song.Card) + ' ' + song.Card;
                 row.appendChild(clubCell);
                 
                 const infoCell = document.createElement('td');
