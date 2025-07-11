@@ -660,3 +660,172 @@ td.club {
     padding: 1rem;
   }
 }
+
+/* Mobile Responsive Fixes - Add to your existing styles.css */
+
+/* Fix 1: Better table layout for mobile */
+@media (max-width: 768px) {
+  table {
+    table-layout: fixed;
+    width: 100%;
+  }
+  
+  /* Column widths for better mobile layout */
+  th:nth-child(1), td:nth-child(1) { /* Card column */
+    width: 15%;
+    min-width: 60px;
+  }
+  
+  th:nth-child(2), td:nth-child(2) { /* Song column */
+    width: 50%;
+    min-width: 150px;
+  }
+  
+  th:nth-child(3), td:nth-child(3) { /* Puzzle piece column */
+    width: 20%;
+    min-width: 80px;
+  }
+  
+  th:nth-child(4), td:nth-child(4) { /* Key column */
+    width: 15%;
+    min-width: 50px;
+  }
+  
+  /* Fix 3: Slightly smaller font for first column only */
+  td.club {
+    font-size: 1.4rem; /* Down from 1.75rem, but still readable */
+    font-weight: 700; /* Slightly lighter to save space */
+  }
+  
+  /* Fix 4: Filter dropdown positioning for mobile */
+  .filter-panel {
+    position: absolute;
+    right: 10px; /* Anchor to right edge */
+    left: auto;
+    top: 100%;
+    transform: none; /* Remove any centering transforms */
+    max-width: calc(100vw - 20px);
+    min-width: 260px;
+  }
+  
+  /* Ensure filter button is positioned properly */
+  .filter-dropdown {
+    position: relative;
+  }
+  
+  /* Fix 5: Optimize detail card for mobile */
+  .detail-header {
+    padding: 1.5rem 1rem; /* Reduce padding */
+    flex-direction: row; /* Keep horizontal layout */
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  /* Make card symbol smaller and keep on same line */
+  .card-symbol {
+    font-size: 2rem; /* Down from 3.5rem */
+    margin-right: 0.75rem; /* Reduce margin */
+    flex-shrink: 0; /* Prevent shrinking */
+    white-space: nowrap;
+  }
+  
+  /* Optimize card title area */
+  .card-title {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .card-title h2 {
+    font-size: 1.4rem; /* Slightly smaller but still readable */
+    margin-bottom: 0.25rem;
+  }
+  
+  .card-title p {
+    font-size: 1rem;
+    margin: 0;
+  }
+  
+  /* Keep all icons on same line */
+  .card-info {
+    display: flex;
+    flex-wrap: nowrap; /* Prevent wrapping */
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  
+  .card-info div {
+    padding: 0.4rem 0.6rem; /* Smaller padding */
+    font-size: 0.85rem; /* Slightly smaller text */
+    white-space: nowrap;
+    flex-shrink: 0; /* Prevent shrinking */
+  }
+  
+  /* Special handling for BPM and Em&a info to use shorter labels if needed */
+  .card-info div:has-text("❤️") {
+    /* You might want to change ❤️ to ♪ for BPM to save space */
+  }
+}
+
+/* For very small screens (under 480px) */
+@media (max-width: 480px) {
+  /* Further optimize card layout */
+  .detail-header {
+    padding: 1rem 0.75rem;
+    gap: 0.75rem;
+  }
+  
+  .card-symbol {
+    font-size: 1.6rem;
+    margin-right: 0.5rem;
+  }
+  
+  .card-title h2 {
+    font-size: 1.2rem;
+  }
+  
+  .card-title p {
+    font-size: 0.9rem;
+  }
+  
+  .card-info {
+    gap: 0.4rem;
+  }
+  
+  .card-info div {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.8rem;
+  }
+  
+  /* Make table even more compact on very small screens */
+  th:nth-child(1), td:nth-child(1) {
+    width: 12%;
+    min-width: 50px;
+  }
+  
+  th:nth-child(2), td:nth-child(2) {
+    width: 53%;
+  }
+  
+  th:nth-child(3), td:nth-child(3) {
+    width: 20%;
+  }
+  
+  th:nth-child(4), td:nth-child(4) {
+    width: 15%;
+  }
+  
+  td.club {
+    font-size: 1.2rem;
+  }
+}
+
+/* Additional fix: Ensure filter panel doesn't go off-screen on any device */
+@media (max-width: 320px) {
+  .filter-panel {
+    right: 5px;
+    left: 5px;
+    max-width: none;
+    min-width: auto;
+  }
+}
