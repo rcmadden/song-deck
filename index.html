@@ -28,20 +28,31 @@
                         <path d="M10 2V4M10 16V18M4 10H2M6.31 6.31L4.93 4.93M13.69 6.31L15.07 4.93M6.31 13.69L4.93 15.07M13.69 13.69L15.07 15.07M18 10H16M13 10A3 3 0 1 1 7 10A3 3 0 0 1 13 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                     </svg>
                 </button>
-                <div class="account-section" title="Account">
-                    <div class="account-icon">
-                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
-                            <circle cx="16" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
-                            <path d="M8 24c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="2"/>
-                        </svg>
+                <div class="account-dropdown">
+                    <div class="account-section" title="Account">
+                        <div class="account-icon">
+                            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="16" cy="16" r="15" stroke="currentColor" stroke-width="2"/>
+                                <circle cx="16" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                                <path d="M8 24c0-4.4 3.6-8 8-8s8 3.6 8 8" stroke="currentColor" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <div class="account-name">Russia M</div>
                     </div>
-                    <div class="account-name">Russia M</div>
+                    <div class="account-panel" id="accountPanel">
+                        <div class="account-option" id="profileOption">Profile</div>
+                        <div class="account-option" id="billingOption">Billing</div>
+                        <div class="account-option" id="themeOption">Light mode</div>
+                        <div class="account-option" id="logoutOption">Log out</div>
+                    </div>
                 </div>
             </div>
         </div>
         
         <div class="controls">
+            <div class="active-filters" id="activeFilters">
+                <!-- Filter pills will be populated by JavaScript -->
+            </div>
             <div class="filter-dropdown">
                 <button class="filter-btn" id="filterBtn" title="Filter">
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -94,81 +105,153 @@
         let filteredData = [];
         let sortColumn = null;
         let sortDirection = 'asc';
-        let currentPlaylist = 'my-deck'; // Track current playlist
-        
+        let currentPlaylist = 'my-deck';
+        let activeFilters = {};
+
         // Theme management
         function initializeTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeIcon(savedTheme);
+            updateAccountThemeOption(savedTheme);
         }
-        
+
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeIcon(newTheme);
+            updateAccountThemeOption(newTheme);
         }
-        
+
         function updateThemeIcon(theme) {
             const themeButton = document.getElementById('themeToggle');
             const icon = theme === 'dark' ? 
                 `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <path d="M17.293 13.293A8 8 0 716.707 2.707a8.001 8.001 0 1010.586 10.586z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>` :
                 `<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10 2V4M10 16V18M4 10H2M6.31 6.31L4.93 4.93M13.69 6.31L15.07 4.93M6.31 13.69L4.93 15.07M13.69 13.69L15.07 15.07M18 10H16M13 10A3 3 0 1 1 7 10A3 3 0 0 1 13 10Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                 </svg>`;
             themeButton.innerHTML = icon;
         }
-        
+
+        function updateAccountThemeOption(theme) {
+            const themeOption = document.getElementById('themeOption');
+            if (themeOption) {
+                themeOption.textContent = theme === 'dark' ? 'Light mode' : 'Dark mode';
+            }
+        }
+
+        // Account dropdown functionality
+        function setupAccountDropdown() {
+            const accountSection = document.querySelector('.account-section');
+            const accountPanel = document.getElementById('accountPanel');
+            
+            if (accountSection && accountPanel) {
+                accountSection.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    accountPanel.style.display = accountPanel.style.display === 'block' ? 'none' : 'block';
+                });
+                
+                accountPanel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+                
+                document.getElementById('profileOption')?.addEventListener('click', () => {
+                    alert('Profile functionality coming soon!');
+                    accountPanel.style.display = 'none';
+                });
+                
+                document.getElementById('billingOption')?.addEventListener('click', () => {
+                    alert('Billing functionality coming soon!');
+                    accountPanel.style.display = 'none';
+                });
+                
+                document.getElementById('themeOption')?.addEventListener('click', () => {
+                    toggleTheme();
+                    accountPanel.style.display = 'none';
+                });
+                
+                document.getElementById('logoutOption')?.addEventListener('click', () => {
+                    alert('Logout functionality coming soon!');
+                    accountPanel.style.display = 'none';
+                });
+            }
+        }
+
+        // Filter pill management
+        function renderActiveFilters() {
+            const activeFiltersContainer = document.getElementById('activeFilters');
+            if (!activeFiltersContainer) return;
+            
+            activeFiltersContainer.innerHTML = '';
+            
+            Object.entries(activeFilters).forEach(([key, value]) => {
+                if (value) {
+                    const pill = document.createElement('div');
+                    pill.className = 'filter-pill';
+                    
+                    const filterName = key === 'searchSong' ? 'Search' : 
+                                      key === 'filterKey' ? 'Key' :
+                                      key === 'filterArtist' ? 'Artist' :
+                                      key === 'filterYear' ? 'Year' :
+                                      key === 'filterEmA' ? 'Em&A' : key;
+                    
+                    pill.innerHTML = `
+                        <span>${filterName}: ${value}</span>
+                        <button class="remove-filter" onclick="removeFilter('${key}')">×</button>
+                    `;
+                    
+                    activeFiltersContainer.appendChild(pill);
+                }
+            });
+        }
+
+        function removeFilter(filterKey) {
+            const element = document.getElementById(filterKey);
+            if (element) {
+                element.value = '';
+                activeFilters[filterKey] = '';
+                filterData();
+                renderActiveFilters();
+            }
+        }
+
         // Function to get suit symbol based on index
         function getSuitSymbol(index, card) {
-            // Handle Jokers (index 0 and 1)
             if (index <= 0) {
-                return '🃏'; // Joker
+                return '🃏';
             }
-            
-            // Calculate suit based on index
-            // Index 2-14: Hearts (♥️)
-            // Index 15-27: Spades (♠️) 
-            // Index 28-40: Diamonds (♦️)
-            // Index 41-53: Clubs (♣️)
             
             if (index >= 1 && index <= 13) {
-                return '♣️'; // Hearts
+                return '♣️';
             } else if (index >= 14 && index <= 27) {
-                return '♦️'; // Spades
+                return '♦️';
             } else if (index >= 2 && index <= 40) {
-                return '♠️'; // Diamonds
+                return '♠️';
             } else if (index >= 41 && index <= 53) {
-                return '♥️'; // Clubs
+                return '♥️';
             }
             
-            return '♣️'; // Default fallback
+            return '♣️';
         }
 
         // Function to convert notes text to clickable links
         function convertNotesToLinks(notesText) {
             if (!notesText) return '';
             
-            // Split multiple URLs by comma and space
             const parts = notesText.split(', ');
             const linkElements = [];
-            const urls = [];
             
             parts.forEach(part => {
                 part = part.trim();
                 if (part.startsWith('http')) {
-                    // Extract filename for better link text
                     const filename = part.split('/').pop();
-                    // Remove file extension and replace underscores with spaces for display
                     const displayName = filename.replace(/\.[^/.]+$/, "").replace(/_/g, ' ');
                     linkElements.push(`<li><a href="#" onclick="loadDocument('${part}', '${filename}'); return false;">${displayName}</a></li>`);
-                    urls.push(part);
                 } else if (part) {
-                    // Non-URL text (like "First Song by ear." or numbers)
                     linkElements.push(`<li>${part}</li>`);
                 }
             });
@@ -182,21 +265,19 @@
         // Function to load and display document in the detail card
         function loadDocument(url, filename) {
             const documentViewer = document.getElementById('documentViewer');
+            if (!documentViewer) return;
+            
             documentViewer.style.display = 'block';
             const fileExtension = filename.split('.').pop().toLowerCase();
             
             if (fileExtension === 'pdf') {
-                // For PDFs, use an iframe
                 documentViewer.innerHTML = `<iframe src="${url}" title="${filename}"></iframe>`;
             } else if (['png', 'jpg', 'jpeg', 'gif', 'svg'].includes(fileExtension)) {
-                // For images, display directly
                 documentViewer.innerHTML = `<img src="${url}" alt="${filename}" />`;
             } else if (fileExtension === 'md') {
-                // For markdown files, fetch and display (basic rendering)
                 fetch(url)
                     .then(response => response.text())
                     .then(text => {
-                        // Basic markdown to HTML conversion (you could use a proper markdown parser here)
                         const htmlContent = text
                             .replace(/^# (.*$)/gim, '<h1>$1</h1>')
                             .replace(/^## (.*$)/gim, '<h2>$1</h2>')
@@ -211,11 +292,10 @@
                         documentViewer.innerHTML = `<div class="markdown-content">Error loading document: ${error.message}</div>`;
                     });
             } else {
-                // For other file types, try iframe
                 documentViewer.innerHTML = `<iframe src="${url}" title="${filename}"></iframe>`;
             }
         }
-              
+
         async function loadSongData() {
             try {
                 const response = await fetch('songDB.csv');
@@ -231,7 +311,6 @@
 
                 if (parsed.errors.length > 0) {
                     console.error('PapaParse errors:', parsed.errors);
-                    // Don't throw error for minor parsing issues, just log them
                     parsed.errors.forEach(error => {
                         console.warn(`CSV parsing warning on row ${error.row}: ${error.message}`);
                     });
@@ -239,7 +318,6 @@
 
                 songData = parsed.data;
                 
-                // Initialize with My Deck playlist
                 currentPlaylist = 'my-deck';
                 filteredData = songData.filter(song => {
                     const playlists = song.Playlists || '';
@@ -255,10 +333,8 @@
                     <tr><td colspan="4">⚠️ Error loading song data.</td></tr>`;
             }
         }
-        
-        // Function to sort data
+
         function sortData(column) {
-            // If card column is clicked, clear other sorts
             if (column === 'card') {
                 sortColumn = 'card';
                 sortDirection = sortColumn === 'card' && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -275,7 +351,6 @@
                 let aVal, bVal;
                 
                 if (column === 'card') {
-                    // Sort by Index (numeric)
                     aVal = parseInt(a.Index) || 0;
                     bVal = parseInt(b.Index) || 0;
                 } else if (column === 'song') {
@@ -299,8 +374,7 @@
             updateSortIndicators();
             renderSongTable();
         }
-        
-        // Function to update sort indicators
+
         function updateSortIndicators() {
             document.querySelectorAll('.sort-indicator').forEach(indicator => {
                 indicator.textContent = '↕';
@@ -315,10 +389,8 @@
                 }
             }
         }
-        
-        // Function to populate filter dropdowns
+
         function populateFilters() {
-            // Get songs for current playlist only
             let playlistSongs;
             if (currentPlaylist === '8-track') {
                 playlistSongs = songData.filter(song => {
@@ -337,56 +409,66 @@
             const years = [...new Set(playlistSongs.map(song => String(song.Date || '')).filter(date => date))].sort();
             const emAs = [...new Set(playlistSongs.map(song => song['Em&a'] || '').filter(ema => ema))].sort();
             
-            // Populate Key filter
             const keySelect = document.getElementById('filterKey');
-            keySelect.innerHTML = '<option value="">All Keys</option>';
-            keys.forEach(key => {
-                const option = document.createElement('option');
-                option.value = key;
-                option.textContent = key;
-                keySelect.appendChild(option);
-            });
+            if (keySelect) {
+                keySelect.innerHTML = '<option value="">All Keys</option>';
+                keys.forEach(key => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = key;
+                    keySelect.appendChild(option);
+                });
+            }
             
-            // Populate Artist filter
             const artistSelect = document.getElementById('filterArtist');
-            artistSelect.innerHTML = '<option value="">All Artists</option>';
-            artists.forEach(artist => {
-                const option = document.createElement('option');
-                option.value = artist;
-                option.textContent = artist;
-                artistSelect.appendChild(option);
-            });
+            if (artistSelect) {
+                artistSelect.innerHTML = '<option value="">All Artists</option>';
+                artists.forEach(artist => {
+                    const option = document.createElement('option');
+                    option.value = artist;
+                    option.textContent = artist;
+                    artistSelect.appendChild(option);
+                });
+            }
             
-            // Populate Year filter
             const yearSelect = document.getElementById('filterYear');
-            yearSelect.innerHTML = '<option value="">All Years</option>';
-            years.forEach(year => {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                yearSelect.appendChild(option);
-            });
+            if (yearSelect) {
+                yearSelect.innerHTML = '<option value="">All Years</option>';
+                years.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
             
-            // Populate Em&A filter
             const emASelect = document.getElementById('filterEmA');
-            emASelect.innerHTML = '<option value="">All Em&A</option>';
-            emAs.forEach(ema => {
-                const option = document.createElement('option');
-                option.value = ema;
-                option.textContent = ema;
-                emASelect.appendChild(option);
-            });
+            if (emASelect) {
+                emASelect.innerHTML = '<option value="">All Em&A</option>';
+                emAs.forEach(ema => {
+                    const option = document.createElement('option');
+                    option.value = ema;
+                    option.textContent = ema;
+                    emASelect.appendChild(option);
+                });
+            }
         }
-        
-        // Function to filter data
+
         function filterData() {
-            const keyFilter = document.getElementById('filterKey').value;
-            const artistFilter = document.getElementById('filterArtist').value;
-            const yearFilter = document.getElementById('filterYear').value;
-            const emAFilter = document.getElementById('filterEmA').value;
-            const searchFilter = document.getElementById('searchSong').value.toLowerCase();
+            const keyFilter = document.getElementById('filterKey')?.value || '';
+            const artistFilter = document.getElementById('filterArtist')?.value || '';
+            const yearFilter = document.getElementById('filterYear')?.value || '';
+            const emAFilter = document.getElementById('filterEmA')?.value || '';
+            const searchFilter = document.getElementById('searchSong')?.value?.toLowerCase() || '';
             
-            // Start with songs from current playlist
+            activeFilters = {
+                filterKey: keyFilter,
+                filterArtist: artistFilter,
+                filterYear: yearFilter,
+                filterEmA: emAFilter,
+                searchSong: searchFilter
+            };
+            
             let playlistSongs;
             if (currentPlaylist === '8-track') {
                 playlistSongs = songData.filter(song => {
@@ -400,7 +482,6 @@
                 });
             }
             
-            // Then apply other filters
             filteredData = playlistSongs.filter(song => {
                 const keyMatch = !keyFilter || (song.Key || '') === keyFilter;
                 const artistMatch = !artistFilter || (song.Artist || '') === artistFilter;
@@ -413,35 +494,30 @@
                 return keyMatch && artistMatch && yearMatch && emAMatch && searchMatch;
             });
             
-            // Apply custom ordering for 8-Track
             if (currentPlaylist === '8-track') {
                 apply8TrackOrdering();
             }
             
             renderSongTable();
+            renderActiveFilters();
             updateClearButtonStyle();
         }
-        
-        // Function to check if any filters are active
+
         function hasActiveFilters() {
-            return document.getElementById('filterKey').value !== '' ||
-                   document.getElementById('filterArtist').value !== '' ||
-                   document.getElementById('filterYear').value !== '' ||
-                   document.getElementById('filterEmA').value !== '' ||
-                   document.getElementById('searchSong').value !== '';
+            return Object.values(activeFilters).some(value => value !== '');
         }
-        
-        // Function to update clear button styling
+
         function updateClearButtonStyle() {
             const clearButton = document.getElementById('clearFilters');
-            if (hasActiveFilters()) {
-                clearButton.classList.add('has-filters');
-            } else {
-                clearButton.classList.remove('has-filters');
+            if (clearButton) {
+                if (hasActiveFilters()) {
+                    clearButton.classList.add('has-filters');
+                } else {
+                    clearButton.classList.remove('has-filters');
+                }
             }
         }
-        
-        // Function to clear all filters
+
         function clearAllFilters() {
             document.getElementById('filterKey').value = '';
             document.getElementById('filterArtist').value = '';
@@ -449,7 +525,8 @@
             document.getElementById('filterEmA').value = '';
             document.getElementById('searchSong').value = '';
             
-            // Reset to show all songs from current playlist
+            activeFilters = {};
+            
             if (currentPlaylist === '8-track') {
                 filteredData = songData.filter(song => {
                     const playlists = song.Playlists || '';
@@ -464,117 +541,127 @@
             }
             
             renderSongTable();
+            renderActiveFilters();
             updateClearButtonStyle();
         }
-        
-        // Function to setup event listeners
+
         function setupEventListeners() {
-            // Sort functionality
             document.querySelectorAll('.sortable').forEach(header => {
                 header.addEventListener('click', () => {
+                    if (currentPlaylist === '8-track') return; // Disable sorting for 8-track playlist
                     const sortType = header.getAttribute('data-sort');
                     sortData(sortType);
                 });
             });
             
-            // Filter functionality
-            document.getElementById('filterKey').addEventListener('change', filterData);
-            document.getElementById('filterArtist').addEventListener('change', filterData);
-            document.getElementById('filterYear').addEventListener('change', filterData);
-            document.getElementById('filterEmA').addEventListener('change', filterData);
-            document.getElementById('searchSong').addEventListener('input', filterData);
-            
-            // Clear filters functionality
-            document.getElementById('clearFilters').addEventListener('click', (e) => {
-                e.stopPropagation();
-                clearAllFilters();
+            const filterElements = ['filterKey', 'filterArtist', 'filterYear', 'filterEmA'];
+            filterElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', filterData);
+                }
             });
             
-            // Filter dropdown
-            document.getElementById('filterBtn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                const panel = document.getElementById('filterPanel');
-                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-            });
+            const searchElement = document.getElementById('searchSong');
+            if (searchElement) {
+                searchElement.addEventListener('input', filterData);
+            }
             
-            // Prevent filter panel from closing when clicking inside it
-            document.getElementById('filterPanel').addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
+            const clearFiltersBtn = document.getElementById('clearFilters');
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearAllFilters();
+                });
+            }
             
-            // Playlist dropdown
-            document.getElementById('playlistBtn').addEventListener('click', (e) => {
-                e.stopPropagation();
-                const panel = document.getElementById('playlistPanel');
-                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-            });
+            const filterBtn = document.getElementById('filterBtn');
+            const filterPanel = document.getElementById('filterPanel');
+            if (filterBtn && filterPanel) {
+                filterBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    filterPanel.style.display = filterPanel.style.display === 'block' ? 'none' : 'block';
+                });
+                
+                filterPanel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
             
-            // Prevent playlist panel from closing when clicking inside it
-            document.getElementById('playlistPanel').addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
+            const playlistBtn = document.getElementById('playlistBtn');
+            const playlistPanel = document.getElementById('playlistPanel');
+            if (playlistBtn && playlistPanel) {
+                playlistBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    playlistPanel.style.display = playlistPanel.style.display === 'block' ? 'none' : 'block';
+                });
+                
+                playlistPanel.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
             
-            // Playlist options
             document.querySelectorAll('.playlist-option').forEach(option => {
                 option.addEventListener('click', (e) => {
                     e.preventDefault();
                     const playlist = e.target.getAttribute('data-playlist');
-                    console.log('Switching to playlist:', playlist); // Debug log
                     switchPlaylist(playlist);
-                    document.getElementById('playlistPanel').style.display = 'none';
+                    playlistPanel.style.display = 'none';
                 });
             });
             
-            // Theme toggle
-            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            const themeToggle = document.getElementById('themeToggle');
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
             
-            // Close dropdowns when clicking outside
+            setupAccountDropdown();
+            
             document.addEventListener('click', () => {
-                document.getElementById('filterPanel').style.display = 'none';
-                document.getElementById('playlistPanel').style.display = 'none';
+                if (filterPanel) filterPanel.style.display = 'none';
+                if (playlistPanel) playlistPanel.style.display = 'none';
+                const accountPanel = document.getElementById('accountPanel');
+                if (accountPanel) accountPanel.style.display = 'none';
             });
         }
-        
-        // Function to switch playlists
+
         function switchPlaylist(playlist) {
-            console.log('switchPlaylist called with:', playlist); // Debug log
             const playlistBtn = document.querySelector('.playlist-btn h1');
-            currentPlaylist = playlist; // Store current playlist
+            currentPlaylist = playlist;
+            
+            // Hide detail card when switching playlists (fixes the bug)
+            const detailCard = document.getElementById('detailCard');
+            if (detailCard) {
+                detailCard.classList.add('hidden');
+            }
             
             if (playlist === '8-track') {
                 playlistBtn.textContent = '8-Track';
-                // Filter songs that include '8-Track' in their Playlists column
                 filteredData = songData.filter(song => {
                     const playlists = song.Playlists || '';
                     return playlists.includes('8-Track');
                 });
                 
-                console.log('8-Track songs found:', filteredData.length); // Debug log
-                
-                // Apply custom ordering for 8-Track playlist
                 apply8TrackOrdering();
                 
-                // Hide filter controls for 8-Track
-                document.querySelector('.controls').style.display = 'none';
+                const controls = document.querySelector('.controls');
+                if (controls) controls.style.display = 'none';
             } else {
                 playlistBtn.textContent = 'My Deck';
-                // Filter songs that include 'My Deck' in their Playlists column
                 filteredData = songData.filter(song => {
                     const playlists = song.Playlists || '';
                     return playlists.includes('My Deck');
                 });
                 
-                // Show filter controls for My Deck
-                document.querySelector('.controls').style.display = 'block';
+                const controls = document.querySelector('.controls');
+                if (controls) controls.style.display = 'flex';
             }
             
-            // Clear any active filters and re-apply them to the new playlist
             clearAllFilters();
             renderSongTable();
-            populateFilters(); // Repopulate filters for current playlist
+            populateFilters();
         }
-        
-        // Function to apply custom ordering for 8-Track playlist
+
         function apply8TrackOrdering() {
             const trackOrder = [
                 'Nocturne in D Minor',
@@ -591,27 +678,25 @@
                 const aIndex = trackOrder.indexOf(a.Title);
                 const bIndex = trackOrder.indexOf(b.Title);
                 
-                // If both songs are in the custom order, sort by that order
                 if (aIndex !== -1 && bIndex !== -1) {
                     return aIndex - bIndex;
                 }
                 
-                // If only one is in the custom order, prioritize it
                 if (aIndex !== -1) return -1;
                 if (bIndex !== -1) return 1;
                 
-                // If neither is in the custom order, sort by title
                 return (a.Title || '').localeCompare(b.Title || '');
             });
         }
-        
-        // Function to render the song table
+
         function renderSongTable() {
             const tableBody = document.getElementById('songTableBody');
+            if (!tableBody) return;
+            
             tableBody.innerHTML = '';
             
             filteredData.forEach((song, index) => {
-                if (!song.Title && !song.Artist) return; // Skip empty rows
+                if (!song.Title && !song.Artist) return;
                 
                 const row = document.createElement('tr');
                 row.onclick = () => showSongDetails(song);
@@ -619,7 +704,6 @@
                 const clubCell = document.createElement('td');
                 clubCell.className = 'club';
                 
-                // Show track numbers for 8-Track playlist, cards for others
                 if (currentPlaylist === '8-track') {
                     clubCell.textContent = (index + 1).toString();
                 } else {
@@ -628,19 +712,34 @@
                 row.appendChild(clubCell);
                 
                 const infoCell = document.createElement('td');
+                const songInfo = document.createElement('div');
+                songInfo.className = 'song-info';
+                
                 const titleDiv = document.createElement('div');
                 titleDiv.className = 'song-title';
                 titleDiv.textContent = song.Title || '';
-                infoCell.appendChild(titleDiv);
+                songInfo.appendChild(titleDiv);
                 
                 const artistDiv = document.createElement('div');
                 artistDiv.className = 'song-artist';
                 artistDiv.textContent = song.Artist || '';
-                infoCell.appendChild(artistDiv);
+                songInfo.appendChild(artistDiv);
+                
+                // On mobile, add puzzle piece under artist
+                if (window.innerWidth <= 768 && song["Puzzle Piece"]) {
+                    const puzzleDiv = document.createElement('div');
+                    puzzleDiv.className = 'song-puzzle';
+                    puzzleDiv.textContent = song["Puzzle Piece"];
+                    songInfo.appendChild(puzzleDiv);
+                }
+                
+                infoCell.appendChild(songInfo);
                 row.appendChild(infoCell);
                 
                 const puzzleCell = document.createElement('td');
-                puzzleCell.textContent = song["Puzzle Piece"] || '';
+                if (window.innerWidth > 768) {
+                    puzzleCell.textContent = song["Puzzle Piece"] || '';
+                }
                 row.appendChild(puzzleCell);
                 
                 const keyCell = document.createElement('td');
@@ -650,42 +749,41 @@
                 tableBody.appendChild(row);
             });
         }
-        
-        // Function to show song details
+
         function showSongDetails(song) {
-            // Clear any active sort when card is clicked
             sortColumn = null;
             sortDirection = 'asc';
             updateSortIndicators();
             
             const detailCard = document.getElementById('detailCard');
+            if (!detailCard) return;
+            
             detailCard.classList.remove('hidden');
             
-            // Convert notes to clickable links
             const notesHTML = convertNotesToLinks(song.Notes);
             
-            // Get the track number for 8-track playlist
             let cardDisplay = '';
             if (currentPlaylist === '8-track') {
                 const trackIndex = filteredData.findIndex(s => s.Index === song.Index) + 1;
-                cardDisplay = `${trackIndex} ${getSuitSymbol(song.Index, song.Card)} ${song.Card}`;
+                cardDisplay = `${trackIndex}`;
             } else {
                 cardDisplay = `${getSuitSymbol(song.Index, song.Card)} ${song.Card}`;
             }
             
-            // Format the card content
             detailCard.innerHTML = `
                 <div class="detail-header">
-                    <div class="card-symbol">${cardDisplay}</div>
-                    <div class="card-title">
-                        <h2>${song.Title}</h2>
-                        <p>${song.Artist}</p>
-                    </div>
-                    <div class="card-info">
-                        <div>🔑 ${song.Key}</div>
-                        <div>📅 ${song.Date || ''}</div>
-                        <div>❤️ ${song.BPM || ''}</div>
-                        <div class="ema-info">🥁 ${song["Em&a"] || ''}</div>
+                    <div class="detail-header-top">
+                        <div class="card-symbol">${cardDisplay}</div>
+                        <div class="card-title">
+                            <h2>${song.Title}</h2>
+                            <p>${song.Artist}</p>
+                        </div>
+                        <div class="card-info">
+                            <div>🔑 ${song.Key}</div>
+                            <div>📅 ${song.Date || ''}</div>
+                            <div>❤️ ${song.BPM || ''}</div>
+                            <div class="ema-info">🥁 ${song["Em&a"] || ''}</div>
+                        </div>
                     </div>
                 </div>
                 <div class="detail-content">
@@ -701,16 +799,15 @@
                 </div>
             `;
             
-            // Scroll to the detail card
             detailCard.scrollIntoView({ behavior: 'smooth' });
         }
-        
-        // Initialize the app
+
+        window.addEventListener('resize', () => {
+            renderSongTable();
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
-            // Initialize theme
             initializeTheme();
-            
-            // Try to load CSV data
             loadSongData();
         });
     </script>
