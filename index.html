@@ -240,7 +240,7 @@
 
         // Function to convert notes text to clickable links
       function convertNotesToLinks(notesText) {
-        if (!notesText) return '';
+        if (!notesText || typeof notesText !== 'string') return '';
         
         const parts = notesText.split(', ');
         const linkElements = [];
@@ -770,6 +770,20 @@
         }
 
         function showSongDetails(song) {
+            
+            function showSongDetails(song) {
+            // Temporary debugging - remove after fixing
+                console.log('Clicked song data:', song);
+                console.log('Song Index:', song.Index, 'Title:', song.Title, 'Artist:', song.Artist, 'Key:', song.Key);
+                
+                // Continue with existing code...
+                sortColumn = null;
+                sortDirection = 'asc';
+                updateSortIndicators();
+                // ... rest of function
+                const detailCard = document.getElementById('detailCard');
+            }   
+
             sortColumn = null;
             sortDirection = 'asc';
             updateSortIndicators();
