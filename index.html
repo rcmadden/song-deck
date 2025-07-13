@@ -99,7 +99,9 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import filter functions
+        import { applyFilters, getPlaylistSongs, createFilterCriteria } from './filters.js';
         // This will store our song data
         let songData = [];
         let filteredData = [];
@@ -218,6 +220,9 @@
                 renderActiveFilters();
             }
         }
+        
+        // Make removeFilter globally accessible
+        window.removeFilter = removeFilter;
 
         // Function to get suit symbol based on index
         function getSuitSymbol(index, card) {
@@ -271,6 +276,9 @@
         // Add active state to clicked link
         event.target.classList.add('active-link');
         }
+        
+        // Make handleLinkClick globally accessible
+        window.handleLinkClick = handleLinkClick;
 
         // Function to load and display document in the detail card
         function loadDocument(url, filename) {
@@ -305,6 +313,9 @@
                 documentViewer.innerHTML = `<iframe src="${url}" title="${filename}"></iframe>`;
             }
         }
+        
+        // Make loadDocument globally accessible
+        window.loadDocument = loadDocument;
 
         async function loadSongData() {
             try {
@@ -465,44 +476,22 @@
         }
 
         function filterData() {
-            const keyFilter = document.getElementById('filterKey')?.value || '';
-            const artistFilter = document.getElementById('filterArtist')?.value || '';
-            const yearFilter = document.getElementById('filterYear')?.value || '';
-            const emAFilter = document.getElementById('filterEmA')?.value || '';
-            const searchFilter = document.getElementById('searchSong')?.value?.toLowerCase() || '';
+            const filterCriteria = createFilterCriteria();
             
+            // Update activeFilters global (keeping existing structure)
             activeFilters = {
-                filterKey: keyFilter,
-                filterArtist: artistFilter,
-                filterYear: yearFilter,
-                filterEmA: emAFilter,
-                searchSong: searchFilter
+                filterKey: filterCriteria.key,
+                filterArtist: filterCriteria.artist,
+                filterYear: filterCriteria.year,
+                filterEmA: filterCriteria.emA,
+                searchSong: filterCriteria.search
             };
             
-            let playlistSongs;
-            if (currentPlaylist === '8-track') {
-                playlistSongs = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('8-Track');
-                });
-            } else {
-                playlistSongs = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('My Deck');
-                });
-            }
+            // Apply playlist filtering first
+            const playlistSongs = getPlaylistSongs(songData, currentPlaylist);
             
-            filteredData = playlistSongs.filter(song => {
-                const keyMatch = !keyFilter || (song.Key || '') === keyFilter;
-                const artistMatch = !artistFilter || (song.Artist || '') === artistFilter;
-                const yearMatch = !yearFilter || String(song.Date || '') === yearFilter;
-                const emAMatch = !emAFilter || (song['Em&a'] || '') === emAFilter;
-                const searchMatch = !searchFilter || 
-                    (song.Title || '').toLowerCase().includes(searchFilter) ||
-                    (song.Artist || '').toLowerCase().includes(searchFilter);
-                
-                return keyMatch && artistMatch && yearMatch && emAMatch && searchMatch;
-            });
+            // Apply user filters
+            filteredData = applyFilters(playlistSongs, filterCriteria);
             
             if (currentPlaylist === '8-track') {
                 apply8TrackOrdering();
