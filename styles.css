@@ -100,7 +100,7 @@ body {
 
 .playlist-btn h1 {
   margin: 0;
-  font-size: 2rem;
+  font-size: 2em;
   font-weight: 800;
   background: linear-gradient(135deg, var(--accent-color), #1ed760);
   -webkit-background-clip: text;
@@ -193,7 +193,7 @@ body {
 
 .account-name {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 0.95em;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -259,7 +259,7 @@ body {
   border: 1px solid var(--pill-border);
   border-radius: 20px;
   padding: 0.4rem 0.8rem;
-  font-size: 0.875rem;
+  font-size: 0.875em;
   font-weight: 500;
   transition: all 0.2s ease;
 }
@@ -270,7 +270,7 @@ body {
   color: var(--pill-text);
   cursor: pointer;
   padding: 0;
-  font-size: 1rem;
+  font-size: 1em;
   line-height: 1;
   transition: all 0.2s ease;
 }
@@ -294,7 +294,7 @@ body {
   gap: 0.5rem;
   color: var(--text-primary);
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 0.9em;
 }
 
 .filter-btn:hover {
@@ -323,7 +323,7 @@ body {
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  font-size: 0.95rem;
+  font-size: 0.95em;
   font-weight: 500;
   margin-bottom: 0.5rem;
   background-color: var(--bg-secondary);
@@ -343,7 +343,7 @@ body {
   border: none;
   border-radius: var(--radius);
   padding: 0.75rem 1rem;
-  font-size: 0.875rem;
+  font-size: 0.875em;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
@@ -384,7 +384,6 @@ th {
   padding: 1rem 1.5rem;
   text-align: left;
   font-weight: 700;
-  font-size: 1rem;
   color: var(--text-primary);
   border-bottom: 2px solid var(--border-color);
   letter-spacing: 0.25px;
@@ -402,7 +401,7 @@ th {
 }
 
 .sort-indicator {
-  font-size: 0.75rem;
+  font-size: 0.75em;
   margin-left: 0.5rem;
   opacity: 0.6;
   transition: all 0.2s ease;
@@ -444,11 +443,10 @@ td:nth-child(4) {
   min-width: 80px;
   white-space: nowrap;
   font-weight: 600;
-  font-size: 1rem;
 }
 
 td.club {
-  font-size: 1.75rem;
+  font-size: 1.75em;
   font-weight: 800;
   color: var(--accent-color);
   min-width: 90px;
@@ -459,7 +457,7 @@ td.club {
   font-weight: 700;
   margin-bottom: 0.25rem;
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: 1.5em;
   letter-spacing: 0.25px;
   white-space: nowrap;
   overflow: hidden;
@@ -468,7 +466,7 @@ td.club {
 
 .song-artist {
   color: var(--text-secondary);
-  font-size: 0.95rem;
+  font-size: 1.2em;
   font-weight: 500;
   margin: 0;
   white-space: nowrap;
@@ -485,7 +483,7 @@ td.club {
   
   .song-puzzle {
     color: var(--text-muted);
-    font-size: 0.85rem;
+    font-size: 0.8em;
     margin-top: 0.25rem;
   }
 }
@@ -528,7 +526,7 @@ td.club {
 }
 
 .card-symbol {
-  font-size: 3.5rem;
+  font-size: 2.5em;
   font-weight: 800;
   color: var(--accent-color);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -544,7 +542,7 @@ td.club {
 
 .card-title h2 {
   margin: 0 0 0.5rem 0;
-  font-size: 1.75rem;
+  font-size: 1.75em;
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: 0.25px;
@@ -556,7 +554,7 @@ td.club {
 .card-title p {
   margin: 0;
   color: var(--text-secondary);
-  font-size: 1.1rem;
+  font-size: 1.4em;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -579,7 +577,7 @@ td.club {
   padding: 0.5rem 0.75rem;
   background-color: var(--bg-primary);
   border-radius: var(--radius);
-  font-size: 0.95rem;
+  font-size: 0.95em;
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -587,6 +585,7 @@ td.club {
 
 .detail-content {
   padding: 2rem;
+  font-size: 1.3em;
 }
 
 .puzzle-piece {
@@ -601,7 +600,7 @@ td.club {
 }
 
 .puzzle-icon {
-  font-size: 1.5rem;
+  font-size: 1.75em;
 }
 
 .notes-links {
@@ -638,7 +637,7 @@ td.club {
 
 .notes-links a::before {
   content: "📄";
-  font-size: 0.875rem;
+  font-size: 1em;
 }
 
 /* Document Viewer */
@@ -680,7 +679,7 @@ td.club {
   }
   
   .playlist-btn h1 {
-    font-size: 1.5rem;
+    font-size: 1.5em;
   }
   
   .controls {
@@ -708,7 +707,7 @@ td.club {
   
   .filter-btn {
     padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
+    font-size: 0.85em;
   }
   
   .main-content {
@@ -716,7 +715,7 @@ td.club {
   }
   
   table {
-    font-size: 0.875rem;
+    font-size: 0.875em;
     table-layout: fixed;
   }
   
@@ -746,7 +745,7 @@ td.club {
   }
   
   td.club {
-    font-size: 1.4rem;
+    font-size: 1.4em;
     font-weight: 700;
   }
   
@@ -763,7 +762,7 @@ td.club {
   .card-symbol {
     grid-column: 1;
     grid-row: 1;
-    font-size: 2.5rem;
+    font-size: 2.5em;
     line-height: 1;
   }
   
@@ -774,7 +773,7 @@ td.club {
   }
   
   .card-title h2 {
-    font-size: 1.4rem;
+    font-size: 1.4em;
     margin: 0 0 0.25rem 0;
     white-space: nowrap;
     overflow: hidden;
@@ -782,7 +781,7 @@ td.club {
   }
   
   .card-title p {
-    font-size: 1rem;
+    font-size: 1.2em;
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -799,7 +798,7 @@ td.club {
   
   .card-info div {
     padding: 0.4rem 0.6rem;
-    font-size: 0.85rem;
+    font-size: 0.85em;
   }
 }
 @media (max-width: 480px) {
@@ -808,7 +807,7 @@ td.club {
   }
   
   .playlist-btn h1 {
-    font-size: 1.25rem;
+    font-size: 1.25em;
   }
   
   .controls {
@@ -817,7 +816,7 @@ td.club {
   
   .filter-btn {
     padding: 0.4rem 0.6rem;
-    font-size: 0.8rem;
+    font-size: 0.8em;
   }
   
   .filter-panel {
@@ -834,28 +833,28 @@ td.club {
     padding: 0.5rem 0.25rem;
   }
   
-  .detail-content {
+  /* .detail-content {
     padding: 1rem;
-  }
+  } */
   
   .card-symbol {
-    font-size: 2rem;
+    font-size: 2em;
   }
   
   .card-title h2 {
-    font-size: 1.2rem;
+    font-size: 1.2em;
   }
   
   .card-title p {
-    font-size: 0.9rem;
+    font-size: 0.9em;
   }
   
   .card-info div {
     padding: 0.3rem 0.5rem;
-    font-size: 0.8rem;
+    font-size: 0.8em;
   }
   
   td.club {
-    font-size: 1.2rem;
+    font-size: 1.2em;
   }
 }
