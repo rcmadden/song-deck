@@ -110,7 +110,7 @@ body {
   margin: 0;
   font-size: 2.5em;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--accent-color), #1ed760);
+  background: linear-gradient(135deg, var(--blue-primary), var(--blue-hover));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
