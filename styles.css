@@ -1,38 +1,46 @@
-/* UI FIXES AND ENHANCEMENTS - Replace your existing CSS with this updated version */
+/* Think or Swim (ToS) Inspired Color Scheme */
 
 :root {
-  /* Light theme colors */
+  /* Light theme colors - ToS inspired */
   --bg-primary: #ffffff;
   --bg-secondary: #f8f9fa;
   --bg-tertiary: #f1f3f4;
-  --text-primary: #191414;
+  --bg-hover: rgba(0, 127, 178, 0.08); /* Light blue hover background */
+  --text-primary: #000000;
   --text-secondary: #6c757d;
   --text-muted: #9ca3af;
   --border-color: #e9ecef;
-  --accent-color: #1db954;
+  --accent-color: #1db954; /* Keep green for branding */
   --accent-hover: #1ed760;
+  --blue-primary: #007fb2; /* Updated blue */
+  --blue-hover: #006a96;
+  --blue-light: rgba(0, 127, 178, 0.1);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.15);
   --radius: 8px;
   --radius-large: 12px;
   
-  /* Filter pill colors */
-  --pill-bg: rgba(29, 185, 84, 0.1);
-  --pill-text: var(--accent-color);
-  --pill-border: var(--accent-color);
+  /* Filter pill colors - now blue */
+  --pill-bg: rgba(0, 127, 178, 0.1);
+  --pill-text: var(--blue-primary);
+  --pill-border: var(--blue-primary);
 }
 
 [data-theme="dark"] {
-  /* Dark theme colors */
+  /* Dark theme colors - ToS inspired */
   --bg-primary: #121212;
   --bg-secondary: #181818;
   --bg-tertiary: #282828;
+  --bg-hover: rgba(0, 127, 178, 0.15); /* Blue hover for dark theme */
   --text-primary: #ffffff;
   --text-secondary: #b3b3b3;
   --text-muted: #6b7280;
   --border-color: #2a2a2a;
-  --accent-color: #1db954;
+  --accent-color: #1db954; /* Keep green for branding */
   --accent-hover: #1ed760;
+  --blue-primary: #1a9bd1; /* Lighter blue for dark theme */
+  --blue-hover: #148bb8;
+  --blue-light: rgba(26, 155, 209, 0.15);
   --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   --shadow-hover: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
@@ -94,7 +102,7 @@ body {
 }
 
 .playlist-btn:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-hover); /* Blue hover */
   transform: translateY(-1px);
 }
 
@@ -137,8 +145,8 @@ body {
 }
 
 .playlist-option:hover {
-  background-color: var(--bg-secondary);
-  color: var(--accent-color);
+  background-color: var(--bg-hover); /* Blue hover */
+  color: var(--blue-primary); /* Blue text on hover */
 }
 
 .header-icons {
@@ -162,7 +170,7 @@ body {
 }
 
 .theme-toggle:hover {
-  border-color: var(--accent-color);
+  border-color: var(--blue-primary); /* Blue border on hover */
   transform: scale(1.1);
 }
 
@@ -182,7 +190,7 @@ body {
 }
 
 .account-section:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-hover); /* Blue hover */
 }
 
 .account-icon {
@@ -227,8 +235,8 @@ body {
 }
 
 .account-option:hover {
-  background-color: var(--bg-secondary);
-  color: var(--accent-color);
+  background-color: var(--bg-hover); /* Blue hover */
+  color: var(--blue-primary); /* Blue text on hover */
 }
 
 /* Controls with Filter Pills */
@@ -254,9 +262,9 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--pill-bg);
-  color: var(--pill-text);
-  border: 1px solid var(--pill-border);
+  background: var(--pill-bg); /* Blue background */
+  color: var(--pill-text); /* Blue text */
+  border: 1px solid var(--pill-border); /* Blue border */
   border-radius: 20px;
   padding: 0.4rem 0.8rem;
   font-size: 0.875em;
@@ -267,7 +275,7 @@ body {
 .filter-pill .remove-filter {
   background: none;
   border: none;
-  color: var(--pill-text);
+  color: var(--pill-text); /* Blue color */
   cursor: pointer;
   padding: 0;
   font-size: 1em;
@@ -284,22 +292,23 @@ body {
 }
 
 .filter-btn {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-primary); /* Original background */
+  border: 1px solid var(--border-color); /* Original border */
   border-radius: var(--radius);
   padding: 0.6rem 0.9rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-primary);
+  color: var(--text-primary); /* Original text color */
   transition: all 0.2s ease;
   font-size: 0.9em;
 }
 
 .filter-btn:hover {
-  background-color: var(--bg-tertiary);
-  border-color: var(--accent-color);
+  background-color: var(--bg-hover); /* Blue hover */
+  border-color: var(--blue-primary); /* Blue border on hover */
+  color: var(--blue-primary); /* Blue text on hover */
   transform: translateY(-1px);
   box-shadow: var(--shadow);
 }
@@ -333,12 +342,12 @@ body {
 
 .filter-select:focus, .filter-input:focus {
   outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(29, 185, 84, 0.1);
+  border-color: var(--blue-primary); /* Blue focus border */
+  box-shadow: 0 0 0 3px var(--blue-light); /* Blue focus shadow */
 }
 
 .clear-filters-btn {
-  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+  background: linear-gradient(135deg, var(--blue-primary), var(--blue-hover)); /* Blue background */
   color: white;
   border: none;
   border-radius: var(--radius);
@@ -357,7 +366,9 @@ body {
 }
 
 .clear-filters-btn.has-filters {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  /* background: linear-gradient(135deg, #e74c3c, #c0392b); */
+  background: linear-gradient(to bottom right, #1a9bd1, #148bb8);
+
 }
 
 /* Main Content */
@@ -396,8 +407,12 @@ th {
 }
 
 .sortable:hover {
-  background-color: var(--bg-tertiary);
-  color: var(--accent-color);
+  background-color: var(--bg-hover); /* Blue hover */
+  color: var(--blue-primary); /* Blue text on hover */
+}
+
+.sortable:hover .sort-indicator {
+  color: var(--blue-primary); /* Blue sort indicators only on hover */
 }
 
 .sort-indicator {
@@ -414,7 +429,7 @@ tr {
 }
 
 tr:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-hover); /* Blue hover background */
   transform: translateX(2px);
 }
 
@@ -448,7 +463,7 @@ td:nth-child(4) {
 td.club {
   font-size: 1.75em;
   font-weight: 800;
-  color: var(--accent-color);
+  color: var(--accent-color); /* Keep green for card numbers */
   min-width: 90px;
   letter-spacing: -0.5px;
 }
@@ -528,7 +543,7 @@ td.club {
 .card-symbol {
   font-size: 2.5em;
   font-weight: 800;
-  color: var(--accent-color);
+  color: var(--accent-color); /* Keep green for card symbols */
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   letter-spacing: -1px;
   white-space: nowrap;
@@ -596,7 +611,7 @@ td.club {
   padding: 1rem;
   background-color: var(--bg-secondary);
   border-radius: var(--radius);
-  border-left: 4px solid var(--accent-color);
+  border-left: 4px solid var(--accent-color); /* Keep green for puzzle piece border */
 }
 
 .puzzle-icon {
@@ -618,7 +633,7 @@ td.club {
 }
 
 .notes-links a {
-  color: var(--accent-color);
+  color: var(--blue-primary); /* Blue text */
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s ease;
@@ -627,17 +642,17 @@ td.club {
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--radius);
-  background-color: var(--bg-secondary);
+  background-color: var(--bg-secondary); /* Original background */
 }
 
 .notes-links a:hover {
-  background-color: var(--bg-tertiary);
+  background-color: var(--bg-tertiary); /* Original hover */
   transform: translateX(4px);
 }
-
-.notes-links a::before {
-  content: "📄";
-  font-size: 1em;
+.notes-links a.active-link {
+  box-shadow: 0 0 0 2px var(--blue-primary); /* Blue outline */
+  transform: translateX(4px);
+  outline: none;
 }
 
 /* Document Viewer */
@@ -801,6 +816,7 @@ td.club {
     font-size: 0.85em;
   }
 }
+
 @media (max-width: 480px) {
   .header {
     padding: 0.75rem;
@@ -832,10 +848,6 @@ td.club {
   th, td {
     padding: 0.5rem 0.25rem;
   }
-  
-  /* .detail-content {
-    padding: 1rem;
-  } */
   
   .card-symbol {
     font-size: 2em;

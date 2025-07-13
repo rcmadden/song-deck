@@ -239,27 +239,37 @@
         }
 
         // Function to convert notes text to clickable links
-        function convertNotesToLinks(notesText) {
-            if (!notesText) return '';
-            
-            const parts = notesText.split(', ');
-            const linkElements = [];
-            
-            parts.forEach(part => {
-                part = part.trim();
-                if (part.startsWith('http')) {
-                    const filename = part.split('/').pop();
-                    const displayName = filename.replace(/\.[^/.]+$/, "").replace(/_/g, ' ');
-                    linkElements.push(`<li><a href="#" onclick="loadDocument('${part}', '${filename}'); return false;">${displayName}</a></li>`);
-                } else if (part) {
-                    linkElements.push(`<li>${part}</li>`);
-                }
-            });
-            
-            if (linkElements.length > 0) {
-                return `<ul>${linkElements.join('')}</ul>`;
+      function convertNotesToLinks(notesText) {
+        if (!notesText) return '';
+        
+        const parts = notesText.split(', ');
+        const linkElements = [];
+        
+        parts.forEach(part => {
+            part = part.trim();
+            if (part.startsWith('http')) {
+            const filename = part.split('/').pop();
+            const displayName = filename.replace(/\.[^/.]+$/, "").replace(/_/g, ' ');
+            linkElements.push(`<li><a href="#" onclick="handleLinkClick(event); loadDocument('${part}', '${filename}'); return false;">${displayName}</a></li>`);
+            } else if (part) {
+            linkElements.push(`<li>${part}</li>`);
             }
-            return '';
+        });
+        
+        if (linkElements.length > 0) {
+            return `<ul>${linkElements.join('')}</ul>`;
+        }
+        return '';
+        }
+
+        function handleLinkClick(event) {
+        // Remove active state from all links in this card
+        document.querySelectorAll('.notes-links a').forEach(link => {
+            link.classList.remove('active-link');
+        });
+        
+        // Add active state to clicked link
+        event.target.classList.add('active-link');
         }
 
         // Function to load and display document in the detail card
