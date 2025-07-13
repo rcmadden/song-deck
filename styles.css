@@ -737,6 +737,7 @@ td.club {
   th:nth-child(3), td:nth-child(3) {
     width: 20%;
     min-width: 80px;
+    display: none;
   }
   
   th:nth-child(4), td:nth-child(4) {
