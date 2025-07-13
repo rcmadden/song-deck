@@ -498,7 +498,7 @@ td.club {
   
   .song-puzzle {
     color: var(--text-muted);
-    font-size: 0.8em;
+    font-size: 1em;
     margin-top: 0.25rem;
   }
 }
@@ -823,7 +823,7 @@ td.club {
   }
   
   .playlist-btn h1 {
-    font-size: 1.25em;
+    font-size: 2em;
   }
   
   .controls {
