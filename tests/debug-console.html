@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Debug Console</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #1a1a1a; color: #00ff00; }
+        .test-section { margin: 20px 0; padding: 10px; border: 1px solid #333; }
+        .test-result { background: #000; padding: 10px; margin: 5px 0; white-space: pre-wrap; }
+        .pass { color: #00ff00; }
+        .fail { color: #ff0000; }
+        .warn { color: #ffaa00; }
+        button { padding: 10px; margin: 10px 0; background: #333; color: #fff; border: none; cursor: pointer; }
+        button:hover { background: #555; }
+    </style>
+</head>
+<body>
+    <h1>Song Deck Filter Debug Console</h1>
+    <button onclick="runAllTests()">Run All Tests</button>
+    <button onclick="clearResults()">Clear Results</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+        }
+
+        function testGlobalVariables() {
+            log('=== TESTING GLOBAL VARIABLES ===', 'info');
+            
+            try {
+                log(`songData exists? ${typeof parent.songData}, length: ${parent.songData?.length}`, 
+                    typeof parent.songData === 'undefined' ? 'fail' : 'pass');
+            } catch(e) {
+                log(`songData error: ${e.message}`, 'fail');
+            }
+
+            try {
+                log(`filteredData exists? ${typeof parent.filteredData}, length: ${parent.filteredData?.length}`, 
+                    typeof parent.filteredData === 'undefined' ? 'fail' : 'pass');
+            } catch(e) {
+                log(`filteredData error: ${e.message}`, 'fail');
+            }
+
+            try {
+                log(`activeFilters exists? ${typeof parent.activeFilters}, value: ${JSON.stringify(parent.activeFilters)}`, 
+                    typeof parent.activeFilters === 'undefined' ? 'fail' : 'pass');
+            } catch(e) {
+                log(`activeFilters error: ${e.message}`, 'fail');
+            }
+
+            try {
+                log(`currentPlaylist exists? ${typeof parent.currentPlaylist}, value: ${parent.currentPlaylist}`, 
+                    typeof parent.currentPlaylist === 'undefined' ? 'fail' : 'pass');
+            } catch(e) {
+                log(`currentPlaylist error: ${e.message}`, 'fail');
+            }
+        }
+
+        function testFilterFunctions() {
+            log('=== TESTING FILTER FUNCTIONS ===', 'info');
+            
+            const functionsToTest = [
+                'filterData', 'populateFilters', 'hasActiveFilters', 'clearAllFilters',
+                'removeFilter', 'renderActiveFilters', 'updateClearButtonStyle'
+            ];
+
+            functionsToTest.forEach(funcName => {
+                try {
+                    const funcType = typeof parent[funcName];
+                    log(`${funcName} function? ${funcType}`, 
+                        funcType === 'function' ? 'pass' : 'fail');
+                } catch(e) {
+                    log(`${funcName} error: ${e.message}`, 'fail');
+                }
+            });
+        }
+
+        function testModuleImports() {
+            log('=== TESTING MODULE IMPORTS ===', 'info');
+            
+            const moduleFeatures = ['applyFilters', 'getPlaylistSongs', 'createFilterCriteria'];
+            
+            moduleFeatures.forEach(funcName => {
+                try {
+                    const funcType = typeof parent[funcName];
+                    log(`${funcName} function? ${funcType}`, 
+                        funcType === 'function' ? 'pass' : 'fail');
+                } catch(e) {
+                    log(`${funcName} error: ${e.message}`, 'fail');
+                }
+            });
+        }
+
+        function testDOMElements() {
+            log('=== TESTING DOM ELEMENTS ===', 'info');
+            
+            const elementIds = ['filterKey', 'filterArtist', 'filterYear', 'filterEmA', 'searchSong', 'clearFilters'];
+            
+            elementIds.forEach(id => {
+                try {
+                    const element = parent.document.getElementById(id);
+                    log(`${id} element? ${element ? 'EXISTS' : 'MISSING'}`, 
+                        element ? 'pass' : 'fail');
+                    if (element) {
+                        log(`  - type: ${element.tagName}, value: "${element.value}"`, 'info');
+                    }
+                } catch(e) {
+                    log(`${id} error: ${e.message}`, 'fail');
+                }
+            });
+        }
+
+        function testCurrentBehavior() {
+            log('=== TESTING CURRENT BEHAVIOR ===', 'info');
+            
+            try {
+                if (typeof parent.createFilterCriteria === 'function') {
+                    const criteria = parent.createFilterCriteria();
+                    log(`Current filter criteria: ${JSON.stringify(criteria)}`, 'info');
+                } else {
+                    log('createFilterCriteria not available', 'fail');
+                }
+            } catch(e) {
+                log(`Filter criteria error: ${e.message}`, 'fail');
+            }
+
+            try {
+                if (typeof parent.applyFilters === 'function' && parent.songData) {
+                    const testSongs = parent.songData.slice(0, 3);
+                    const testResult = parent.applyFilters(testSongs, {search: 'test'});
+                    log(`Manual filter test: ${testResult.length} results from 3 songs with search 'test'`, 'info');
+                } else {
+                    log('Cannot test applyFilters - function or data missing', 'fail');
+                }
+            } catch(e) {
+                log(`Manual filter test error: ${e.message}`, 'fail');
+            }
+
+            try {
+                if (typeof parent.hasActiveFilters === 'function') {
+                    const hasActive = parent.hasActiveFilters();
+                    log(`hasActiveFilters() returns: ${hasActive}`, 'info');
+                } else {
+                    log('hasActiveFilters not available', 'fail');
+                }
+            } catch(e) {
+                log(`hasActiveFilters error: ${e.message}`, 'fail');
+            }
+        }
+
+        function runAllTests() {
+            clearResults();
+            log('Starting debug tests for Song Deck filters...', 'info');
+            log('', 'info');
+            
+            testGlobalVariables();
+            log('', 'info');
+            testFilterFunctions();
+            log('', 'info');
+            testModuleImports();
+            log('', 'info');
+            testDOMElements();
+            log('', 'info');
+            testCurrentBehavior();
+            log('', 'info');
+            log('=== DEBUG COMPLETE ===', 'info');
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Auto-run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                log('Debug console loaded. Click "Run All Tests" to analyze Song Deck filter state.', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

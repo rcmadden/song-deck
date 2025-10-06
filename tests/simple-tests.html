@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Direct Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .manual { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .instruction { background-color: #e2e3e5; color: #383d41; border: 1px solid #ced4da; }
+    </style>
+</head>
+<body>
+    <h1>Simple Direct Tests</h1>
+    <p>These are manual tests that check what you can actually observe on the main page.</p>
+
+    <div class="test manual">
+        <h3>Test 1: CSV Data Loading</h3>
+        <p><strong>Instructions:</strong> Go to the main Song Deck page (not iframe)</p>
+        <p><strong>Expected when CSV missing:</strong> Table shows "⚠️ Error loading song data."</p>
+        <p><strong>Check:</strong> Do you see the error message in the table?</p>
+        <button onclick="recordResult('csvLoading', true)">✓ Error message shown</button>
+        <button onclick="recordResult('csvLoading', false)">✗ No error message</button>
+    </div>
+
+    <div class="test manual">
+        <h3>Test 2: Filter Button Functionality</h3>
+        <p><strong>Instructions:</strong> On the main page, try clicking the filter button (🔽)</p>
+        <p><strong>Expected when CSV fails:</strong> Button click should do nothing - no dropdown appears</p>
+        <p><strong>Check:</strong> Does clicking the filter button show the dropdown panel?</p>
+        <button onclick="recordResult('filterButton', true)">✓ Dropdown appears</button>
+        <button onclick="recordResult('filterButton', false)">✗ No dropdown</button>
+    </div>
+
+    <div class="test manual">
+        <h3>Test 3: Console Errors</h3>
+        <p><strong>Instructions:</strong> Open DevTools Console on main page</p>
+        <p><strong>Expected when CSV fails:</strong> Should see network error for songDB.csv</p>
+        <p><strong>Check:</strong> Do you see "Error loading song data" or network errors?</p>
+        <button onclick="recordResult('consoleErrors', true)">✓ Errors shown</button>
+        <button onclick="recordResult('consoleErrors', false)">✗ No errors</button>
+    </div>
+
+    <div class="test manual">
+        <h3>Test 4: Page Functionality</h3>
+        <p><strong>Instructions:</strong> Try using other features (theme toggle, account dropdown)</p>
+        <p><strong>Expected:</strong> Basic UI should still work even when CSV fails</p>
+        <p><strong>Check:</strong> Do theme toggle and account dropdown work?</p>
+        <button onclick="recordResult('basicUI', true)">✓ Basic UI works</button>
+        <button onclick="recordResult('basicUI', false)">✗ UI broken</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        const testResults = {};
+
+        function recordResult(testName, passed) {
+            testResults[testName] = passed;
+            updateResults();
+        }
+
+        function updateResults() {
+            const resultsDiv = document.getElementById('results');
+            let html = '<h2>Test Results</h2>';
+            
+            Object.entries(testResults).forEach(([test, passed]) => {
+                const status = passed ? '✓ PASS' : '✗ FAIL';
+                const color = passed ? '#155724' : '#721c24';
+                html += `<div style="color: ${color}; margin: 5px 0;">${test}: ${status}</div>`;
+            });
+
+            const total = Object.keys(testResults).length;
+            const passed = Object.values(testResults).filter(r => r).length;
+            const failed = total - passed;
+
+            html += `<div style="margin-top: 20px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+                <strong>Summary:</strong> ${passed} passed, ${failed} failed of ${total} total
+            </div>`;
+
+            if (failed > 0) {
+                html += `<div style="margin-top: 10px; padding: 10px; background-color: #f8d7da; color: #721c24; border-radius: 4px;">
+                    <strong>Issues Detected:</strong> The application is not handling CSV loading failure properly.
+                </div>`;
+            }
+
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

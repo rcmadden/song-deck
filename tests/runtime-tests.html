@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Runtime Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        .summary { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; }
+        iframe { display: none; }
+    </style>
+</head>
+<body>
+    <h1>Runtime Tests - Tests Actual Page Behavior</h1>
+    <div id="results"></div>
+    <iframe id="testFrame"></iframe>
+
+    <script>
+        const results = [];
+        
+        function addResult(name, status, error = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${status}`;
+            div.innerHTML = status === 'pass' ? 
+                `✓ ${name}` : 
+                `✗ ${name}: ${error}`;
+            document.getElementById('results').appendChild(div);
+            results.push({ name, status, error });
+        }
+
+        function loadPage() {
+            return new Promise((resolve, reject) => {
+                const frame = document.getElementById('testFrame');
+                const timeout = setTimeout(() => {
+                    reject(new Error('Page load timeout'));
+                }, 5000);
+                
+                frame.onload = () => {
+                    clearTimeout(timeout);
+                    resolve(frame);
+                };
+                frame.onerror = () => {
+                    clearTimeout(timeout);
+                    reject(new Error('Page failed to load'));
+                };
+                
+                // Force no cache
+                frame.src = `./index.html?nocache=${Date.now()}`;
+            });
+        }
+
+        async function waitForDataLoad(frame, maxWait = 3000) {
+            const start = Date.now();
+            while (Date.now() - start < maxWait) {
+                const doc = frame.contentDocument;
+                const tableBody = doc.getElementById('songTableBody');
+                
+                if (tableBody) {
+                    // Check if error message is shown
+                    const hasErrorMsg = tableBody.innerHTML.includes('Error loading');
+                    
+                    // Check if actual song data loaded (not just error message)
+                    const hasActualData = tableBody.children.length > 0 && !hasErrorMsg;
+                    
+                    if (hasActualData || hasErrorMsg) {
+                        return { hasData: hasActualData, hasError: hasErrorMsg };
+                    }
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            return { hasData: false, hasError: false, timedOut: true };
+        }
+
+        async function runTests() {
+            // Test 1: Page loads without crashing
+            try {
+                const frame = await loadPage();
+                addResult('Page loads without crashing', 'pass');
+                
+                // Test 2: CSV data loads successfully 
+                const dataResult = await waitForDataLoad(frame);
+                
+                // Debug info
+                console.log('Data result:', dataResult);
+                const doc = frame.contentDocument;
+                const tableBody = doc.getElementById('songTableBody');
+                console.log('Table body innerHTML:', tableBody ? tableBody.innerHTML : 'NOT FOUND');
+                
+                // Simple: if hasData is false, test fails
+                if (dataResult.hasData) {
+                    addResult('CSV data loads successfully', 'pass');
+                } else {
+                    addResult('CSV data loads successfully', 'fail', 'CSV data not loaded');
+                }
+                
+                // Simple: if hasError is true, error handling works
+                if (dataResult.hasError) {
+                    addResult('Shows error message when CSV loading fails', 'pass');
+                } else {
+                    addResult('Shows error message when CSV loading fails', 'fail', 'No error message shown');
+                }
+                
+                // Test 4: activeFilters element exists at runtime
+                // doc already declared above
+                const activeFilters = doc.getElementById('activeFilters');
+                if (activeFilters) {
+                    addResult('activeFilters element exists at runtime', 'pass');
+                } else {
+                    addResult('activeFilters element exists at runtime', 'fail', 
+                        'Element missing - filter pills will not work');
+                }
+                
+                // Test 5: renderActiveFilters function can execute without errors
+                try {
+                    const frameWindow = frame.contentWindow;
+                    
+                    // Debug: Check what functions exist
+                    console.log('removeFilter function exists:', typeof frameWindow.removeFilter);
+                    console.log('Window object keys:', Object.keys(frameWindow).filter(k => k.includes('Filter') || k.includes('filter')));
+                    
+                    // Try to access the function
+                    if (typeof frameWindow.removeFilter === 'function') {
+                        addResult('Filter functions are accessible', 'pass', 
+                            'removeFilter function found - but this may be wrong if data failed to load');
+                    } else {
+                        addResult('Filter functions are accessible', 'fail', 
+                            'removeFilter function not found on window object');
+                    }
+                } catch (error) {
+                    addResult('Filter functions are accessible', 'fail', 
+                        `Error accessing filter functions: ${error.message}`);
+                }
+                
+                // Test 6: Filter button event listeners are attached and functional
+                try {
+                    const filterBtn = doc.getElementById('filterBtn');
+                    const filterPanel = doc.getElementById('filterPanel');
+                    
+                    if (!filterBtn || !filterPanel) {
+                        addResult('Filter button functionality', 'fail', 
+                            'Filter button or panel not found in DOM');
+                    } else {
+                        // Check if event listeners are actually attached
+                        // We do this by checking if clicking actually works
+                        const initialDisplay = filterPanel.style.display || '';
+                        
+                        // Debug current state
+                        console.log('Initial display:', initialDisplay);
+                        console.log('Panel offsetHeight before click:', filterPanel.offsetHeight);
+                        console.log('Panel computedStyle display before:', frameWindow.getComputedStyle(filterPanel).display);
+                        
+                        // Try clicking the button
+                        filterBtn.click();
+                        
+                        // Wait for any DOM changes
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                        const afterClickDisplay = filterPanel.style.display || '';
+                        
+                        // Debug after click
+                        console.log('After click display:', afterClickDisplay);
+                        console.log('Panel offsetHeight after click:', filterPanel.offsetHeight);
+                        console.log('Panel computedStyle display after:', frameWindow.getComputedStyle(filterPanel).display);
+                        
+                        // Check if anything actually changed
+                        const styleChanged = initialDisplay !== afterClickDisplay;
+                        const becameVisible = filterPanel.offsetHeight > 0;
+                        const displayBlock = afterClickDisplay === 'block';
+                        
+                        console.log('Style changed:', styleChanged, 'Became visible:', becameVisible, 'Display block:', displayBlock);
+                        
+                        if (styleChanged || becameVisible || displayBlock) {
+                            addResult('Filter button functionality', 'pass');
+                        } else {
+                            addResult('Filter button functionality', 'fail', 
+                                `Event listeners not attached - button click had no effect. Data loaded: ${dataResult.hasData}`);
+                        }
+                    }
+                } catch (error) {
+                    addResult('Filter button functionality', 'fail', 
+                        `Error testing filter button: ${error.message}`);
+                }
+                
+                // Test 7: Console errors check
+                const consoleErrors = [];
+                const originalError = frame.contentWindow.console.error;
+                frame.contentWindow.console.error = (...args) => {
+                    consoleErrors.push(args.join(' '));
+                    originalError.apply(frame.contentWindow.console, args);
+                };
+                
+                // Wait a bit for any delayed errors
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                if (consoleErrors.length === 0) {
+                    addResult('No JavaScript console errors', 'pass');
+                } else {
+                    addResult('No JavaScript console errors', 'fail', 
+                        `Found ${consoleErrors.length} console errors: ${consoleErrors[0]}`);
+                }
+                
+            } catch (error) {
+                addResult('Page loads without crashing', 'fail', error.message);
+                addResult('App handles data loading (loads data OR shows error)', 'fail', 
+                    'Could not test - page failed to load');
+                addResult('activeFilters element exists at runtime', 'fail', 
+                    'Could not test - page failed to load');
+                addResult('Filter functions are accessible', 'fail', 
+                    'Could not test - page failed to load');
+                addResult('Filter button functionality', 'fail', 
+                    'Could not test - page failed to load');
+            }
+            
+            // Display summary
+            const passed = results.filter(r => r.status === 'pass').length;
+            const failed = results.filter(r => r.status === 'fail').length;
+            
+            const summary = document.createElement('div');
+            summary.className = 'summary';
+            summary.innerHTML = `
+                <strong>Runtime Test Summary:</strong><br>
+                ✓ ${passed} passed<br>
+                ✗ ${failed} failed<br><br>
+                ${failed === 0 ? 
+                    '<strong style="color: #2e7d32;">✓ All runtime tests passed!</strong>' : 
+                    `<strong style="color: #d32f2f;">⚠️ ${failed} runtime failures detected!</strong>`
+                }<br><br>
+                <em>These tests actually load the page and test real behavior, not just structure.</em>
+            `;
+            document.getElementById('results').appendChild(summary);
+        }
+
+        runTests();
+    </script>
+</body>
+</html>

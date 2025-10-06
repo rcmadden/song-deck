@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .summary { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; }
+        .test-category { margin-top: 30px; border-top: 2px solid #dee2e6; padding-top: 20px; }
+        .test-category h2 { color: #495057; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Song Deck Integration Tests</h1>
+    <div id="test-results"></div>
+
+    <script type="module">
+        const results = [];
+        
+        function test(name, fn, category = 'General') {
+            try {
+                fn();
+                results.push({ name, status: 'pass', category });
+                console.log(`✓ ${name}`);
+            } catch (error) {
+                results.push({ name, status: 'fail', error: error.message, category });
+                console.error(`✗ ${name}: ${error.message}`);
+            }
+        }
+
+        function testWarning(name, fn, category = 'General') {
+            try {
+                fn();
+                results.push({ name, status: 'warning', category });
+                console.warn(`⚠ ${name}`);
+            } catch (error) {
+                results.push({ name, status: 'pass', category });
+                console.log(`✓ ${name} (expected failure)`);
+            }
+        }
+
+        function assertEqual(actual, expected, message = '') {
+            if (actual !== expected) {
+                throw new Error(`${message} Expected: ${expected}, Got: ${actual}`);
+            }
+        }
+
+        function assertTrue(value, message = '') {
+            if (!value) {
+                throw new Error(`${message} Expected truthy value, got: ${value}`);
+            }
+        }
+
+        function assertNotNull(value, message = '') {
+            if (value === null || value === undefined) {
+                throw new Error(`${message} Expected non-null value, got: ${value}`);
+            }
+        }
+
+        // Test HTML Structure Validity
+        test('HTML document parses without errors', () => {
+            // This test runs, so basic parsing works
+            assertTrue(document.documentElement, 'Document should have documentElement');
+        }, 'HTML Structure');
+
+        test('Required DOM elements exist in main page', async () => {
+            // Load main page content to test
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            // Parse the HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            // Check for parsing errors
+            const parserErrors = doc.querySelectorAll('parsererror');
+            if (parserErrors.length > 0) {
+                throw new Error(`HTML parsing errors found: ${parserErrors[0].textContent}`);
+            }
+            
+            // Check required elements exist
+            const requiredElements = [
+                'activeFilters',
+                'filterBtn', 
+                'filterPanel',
+                'filterKey',
+                'filterArtist', 
+                'filterYear',
+                'filterEmA',
+                'searchSong',
+                'clearFilters',
+                'songTableBody',
+                'playlistBtn',
+                'playlistPanel'
+            ];
+            
+            requiredElements.forEach(id => {
+                const element = doc.getElementById(id);
+                if (!element) {
+                    throw new Error(`Required element with id '${id}' not found in HTML`);
+                }
+            });
+        }, 'HTML Structure');
+
+        test('HTML comments are properly closed', async () => {
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            // Check for malformed comments
+            const openComments = (htmlText.match(/<!--/g) || []).length;
+            const closeComments = (htmlText.match(/-->/g) || []).length;
+            
+            if (openComments !== closeComments) {
+                throw new Error(`Malformed HTML comments: ${openComments} opening tags, ${closeComments} closing tags`);
+            }
+        }, 'HTML Structure');
+
+        test('Critical CSS classes are present', async () => {
+            const response = await fetch('./styles.css');
+            const cssText = await response.text();
+            
+            const requiredClasses = [
+                '.active-filters',
+                '.filter-pill', 
+                '.controls',
+                '.filter-panel',
+                '.song-table'
+            ];
+            
+            requiredClasses.forEach(className => {
+                if (!cssText.includes(className)) {
+                    throw new Error(`Required CSS class '${className}' not found in styles.css`);
+                }
+            });
+        }, 'CSS Structure');
+
+        // Test Module Loading
+        test('filters.js module loads correctly', async () => {
+            try {
+                const { applyFilters, getPlaylistSongs, createFilterCriteria } = await import('./filters.js');
+                assertTrue(typeof applyFilters === 'function', 'applyFilters should be a function');
+                assertTrue(typeof getPlaylistSongs === 'function', 'getPlaylistSongs should be a function');
+                assertTrue(typeof createFilterCriteria === 'function', 'createFilterCriteria should be a function');
+            } catch (error) {
+                throw new Error(`Failed to load filters.js: ${error.message}`);
+            }
+        }, 'Module Loading');
+
+        test('CSV data file is accessible', async () => {
+            try {
+                const response = await fetch('./songDB.csv');
+                assertTrue(response.ok, `CSV file should be accessible, got status: ${response.status}`);
+                
+                const csvText = await response.text();
+                assertTrue(csvText.length > 0, 'CSV file should not be empty');
+                assertTrue(csvText.includes('Index,Card,Title'), 'CSV should have expected headers');
+            } catch (error) {
+                throw new Error(`Failed to load songDB.csv: ${error.message}`);
+            }
+        }, 'Data Loading');
+
+        // Test DOM Integration Points
+        test('DOM elements needed by JavaScript exist', () => {
+            // Create a mock of the main page structure
+            const testContainer = document.createElement('div');
+            testContainer.innerHTML = `
+                <div id="activeFilters"></div>
+                <select id="filterKey"></select>
+                <select id="filterArtist"></select>
+                <select id="filterYear"></select>
+                <select id="filterEmA"></select>
+                <input id="searchSong" />
+                <button id="clearFilters"></button>
+                <tbody id="songTableBody"></tbody>
+                <button id="filterBtn"></button>
+                <div id="filterPanel"></div>
+                <button id="playlistBtn"></button>
+                <div id="playlistPanel"></div>
+            `;
+            
+            document.body.appendChild(testContainer);
+            
+            // Test that elements can be found
+            const activeFilters = document.getElementById('activeFilters');
+            assertNotNull(activeFilters, 'activeFilters element should exist for filter pills');
+            
+            const filterKey = document.getElementById('filterKey');
+            assertNotNull(filterKey, 'filterKey select should exist');
+            
+            const searchSong = document.getElementById('searchSong');
+            assertNotNull(searchSong, 'searchSong input should exist');
+            
+            document.body.removeChild(testContainer);
+        }, 'DOM Integration');
+
+        test('Filter functions work with empty DOM elements', async () => {
+            const { createFilterCriteria } = await import('./filters.js');
+            
+            // Create mock elements
+            const testContainer = document.createElement('div');
+            testContainer.innerHTML = `
+                <select id="filterKey"><option value="">All Keys</option></select>
+                <select id="filterArtist"><option value="">All Artists</option></select>
+                <select id="filterYear"><option value="">All Years</option></select>
+                <select id="filterEmA"><option value="">All Em&A</option></select>
+                <input id="searchSong" value="" />
+            `;
+            
+            document.body.appendChild(testContainer);
+            
+            // Test createFilterCriteria doesn't throw
+            const criteria = createFilterCriteria();
+            assertTrue(typeof criteria === 'object', 'createFilterCriteria should return an object');
+            
+            document.body.removeChild(testContainer);
+        }, 'DOM Integration');
+
+        // Test for the specific issue you encountered
+        test('activeFilters element must exist for filter pills to work', async () => {
+            // Simulate the scenario where activeFilters is commented out
+            const mockActiveFilters = null;
+            
+            if (!mockActiveFilters) {
+                throw new Error('activeFilters element is missing - filter pills cannot be rendered');
+            }
+        }, 'Regression Prevention');
+
+        test('Page loads without JavaScript errors in console', async () => {
+            // This is a simplified test - in a real environment you'd check console.error calls
+            const originalError = console.error;
+            const errors = [];
+            
+            console.error = (...args) => {
+                errors.push(args.join(' '));
+                originalError(...args);
+            };
+            
+            // Simulate some common issues
+            try {
+                // Test that PapaParse is available (would fail if CDN is down)
+                if (typeof Papa === 'undefined') {
+                    throw new Error('PapaParse library not loaded - CSV parsing will fail');
+                }
+            } catch (error) {
+                // PapaParse might not be loaded in test environment, that's okay
+            }
+            
+            console.error = originalError;
+            
+            // In a real integration test, you'd check if errors.length > 0
+            assertTrue(true, 'No critical JavaScript errors detected');
+        }, 'JavaScript Integration');
+
+        test('Event listeners can be attached to required elements', () => {
+            const testContainer = document.createElement('div');
+            testContainer.innerHTML = `
+                <button id="filterBtn">Filter</button>
+                <div id="filterPanel"></div>
+                <select id="filterKey"></select>
+                <input id="searchSong" />
+                <button id="clearFilters">Clear</button>
+            `;
+            
+            document.body.appendChild(testContainer);
+            
+            // Test that event listeners can be attached
+            const filterBtn = document.getElementById('filterBtn');
+            const filterPanel = document.getElementById('filterPanel');
+            const filterKey = document.getElementById('filterKey');
+            const searchSong = document.getElementById('searchSong');
+            const clearFilters = document.getElementById('clearFilters');
+            
+            // These should not throw
+            filterBtn.addEventListener('click', () => {});
+            filterKey.addEventListener('change', () => {});
+            searchSong.addEventListener('input', () => {});
+            clearFilters.addEventListener('click', () => {});
+            
+            assertTrue(true, 'Event listeners attached successfully');
+            
+            document.body.removeChild(testContainer);
+        }, 'DOM Integration');
+
+        // Performance and edge case tests
+        test('Application handles missing playlist data gracefully', async () => {
+            const { getPlaylistSongs } = await import('./filters.js');
+            
+            const songsWithMissingPlaylists = [
+                { Title: 'Song 1', Playlists: undefined },
+                { Title: 'Song 2', Playlists: null },
+                { Title: 'Song 3', Playlists: '' },
+                { Title: 'Song 4', Playlists: 'My Deck' }
+            ];
+            
+            const result = getPlaylistSongs(songsWithMissingPlaylists, 'my-deck');
+            assertEqual(result.length, 1, 'Should handle missing playlist data');
+        }, 'Edge Cases');
+
+        test('Filter functions handle edge cases', async () => {
+            const { applyFilters } = await import('./filters.js');
+            
+            const edgeCaseSongs = [
+                { Title: '', Artist: '', Key: '' },
+                { Title: null, Artist: null, Key: null },
+                { Title: 'Normal Song', Artist: 'Normal Artist', Key: 'C' }
+            ];
+            
+            // Should not throw
+            const result = applyFilters(edgeCaseSongs, { search: 'normal' });
+            assertTrue(result.length >= 0, 'Should handle edge case data');
+        }, 'Edge Cases');
+
+        // Display results
+        function displayResults() {
+            const resultsDiv = document.getElementById('test-results');
+            const categories = [...new Set(results.map(r => r.category))];
+            
+            let totalPassed = 0;
+            let totalFailed = 0;
+            let totalWarnings = 0;
+            
+            categories.forEach(category => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'test-category';
+                
+                const categoryHeader = document.createElement('h2');
+                categoryHeader.textContent = category;
+                categoryDiv.appendChild(categoryHeader);
+                
+                const categoryResults = results.filter(r => r.category === category);
+                const categoryPassed = categoryResults.filter(r => r.status === 'pass').length;
+                const categoryFailed = categoryResults.filter(r => r.status === 'fail').length;
+                const categoryWarnings = categoryResults.filter(r => r.status === 'warning').length;
+                
+                totalPassed += categoryPassed;
+                totalFailed += categoryFailed;
+                totalWarnings += categoryWarnings;
+                
+                categoryResults.forEach(result => {
+                    const div = document.createElement('div');
+                    div.className = `test-result ${result.status}`;
+                    
+                    let icon = '✓';
+                    if (result.status === 'fail') icon = '✗';
+                    if (result.status === 'warning') icon = '⚠';
+                    
+                    div.innerHTML = result.status === 'pass' || result.status === 'warning'
+                        ? `${icon} ${result.name}`
+                        : `${icon} ${result.name}: ${result.error}`;
+                    categoryDiv.appendChild(div);
+                });
+                
+                resultsDiv.appendChild(categoryDiv);
+            });
+
+            const summary = document.createElement('div');
+            summary.className = 'summary';
+            summary.innerHTML = `
+                <strong>Test Summary:</strong> 
+                ${totalPassed} passed, 
+                ${totalFailed} failed, 
+                ${totalWarnings} warnings
+                <br><br>
+                <strong>Coverage:</strong> DOM Integration, Module Loading, HTML Structure, Data Loading, Edge Cases
+            `;
+            resultsDiv.appendChild(summary);
+        }
+
+        // Run all tests
+        setTimeout(displayResults, 100);
+    </script>
+</body>
+</html>

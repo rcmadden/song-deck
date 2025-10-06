@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real Page Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { background-color: #d4edda; color: #155724; }
+        .fail { background-color: #f8d7da; color: #721c24; }
+        iframe { width: 100%; height: 400px; border: 1px solid #ccc; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Real Page Tests</h1>
+    <div id="results"></div>
+    <iframe id="testFrame" src="about:blank"></iframe>
+
+    <script>
+        async function test(name, testFn) {
+            try {
+                await testFn();
+                addResult(name, 'pass');
+            } catch (error) {
+                addResult(name, 'fail', error.message);
+            }
+        }
+
+        function addResult(name, status, error = '') {
+            const div = document.createElement('div');
+            div.className = `test-result ${status}`;
+            div.innerHTML = status === 'pass' ? 
+                `✓ ${name}` : 
+                `✗ ${name}: ${error}`;
+            document.getElementById('results').appendChild(div);
+        }
+
+        function loadPageInFrame() {
+            return new Promise((resolve, reject) => {
+                const frame = document.getElementById('testFrame');
+                frame.onload = () => resolve(frame);
+                frame.onerror = () => reject(new Error('Frame failed to load'));
+                // Add cache busting
+                frame.src = `./index.html?t=${Date.now()}`;
+            });
+        }
+
+        async function runTests() {
+            // Test 1: Page loads without errors
+            await test('Page loads in iframe', async () => {
+                const frame = await loadPageInFrame();
+                if (!frame.contentDocument) {
+                    throw new Error('Frame has no content document');
+                }
+            });
+
+            // Test 2: Required elements exist after page load
+            await test('Required elements exist after full page load', async () => {
+                const frame = await loadPageInFrame();
+                const doc = frame.contentDocument;
+                
+                const activeFilters = doc.getElementById('activeFilters');
+                if (!activeFilters) {
+                    throw new Error('activeFilters element missing');
+                }
+                
+                const songTableBody = doc.getElementById('songTableBody');
+                if (!songTableBody) {
+                    throw new Error('songTableBody element missing');
+                }
+            });
+
+            // Test 3: Data actually loads (or fails gracefully)
+            await test('Data loads or shows error message', async () => {
+                const frame = await loadPageInFrame();
+                
+                // Wait for data loading to complete
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const doc = frame.contentDocument;
+                const tableBody = doc.getElementById('songTableBody');
+                
+                if (!tableBody) {
+                    throw new Error('Table body not found');
+                }
+                
+                const hasData = tableBody.children.length > 0;
+                const hasErrorMessage = tableBody.innerHTML.includes('Error loading');
+                
+                if (!hasData && !hasErrorMessage) {
+                    throw new Error('No data loaded and no error message shown');
+                }
+            });
+
+            // Test 4: Filter button works
+            await test('Filter button is clickable', async () => {
+                const frame = await loadPageInFrame();
+                
+                // Wait for page to fully load
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const doc = frame.contentDocument;
+                const filterBtn = doc.getElementById('filterBtn');
+                
+                if (!filterBtn) {
+                    throw new Error('Filter button not found');
+                }
+                
+                // Try to click it
+                filterBtn.click();
+                
+                // Check if panel appears
+                const filterPanel = doc.getElementById('filterPanel');
+                if (!filterPanel) {
+                    throw new Error('Filter panel not found');
+                }
+            });
+        }
+
+        runTests();
+    </script>
+</body>
+</html>

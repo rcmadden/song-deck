@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM Validation Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .critical { background-color: #ff6b6b; color: white; border: 1px solid #ff5252; font-weight: bold; }
+        .summary { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>DOM Structure Validation Tests</h1>
+    <p><strong>⚠️ LIMITATION:</strong> These are STATIC tests that only check HTML structure. They DO NOT test runtime behavior like data loading, user interactions, or error handling.</p>
+    <p>For actual application behavior testing, use runtime-tests.html instead.</p>
+    <div id="test-results"></div>
+
+    <script type="module">
+        const results = [];
+        
+        function test(name, fn, isCritical = false) {
+            try {
+                fn();
+                results.push({ name, status: 'pass', critical: isCritical });
+                console.log(`✓ ${name}`);
+            } catch (error) {
+                results.push({ 
+                    name, 
+                    status: isCritical ? 'critical' : 'fail', 
+                    error: error.message, 
+                    critical: isCritical 
+                });
+                console.error(`✗ ${name}: ${error.message}`);
+            }
+        }
+
+        function assertTrue(value, message = '') {
+            if (!value) {
+                throw new Error(`${message} Expected truthy value, got: ${value}`);
+            }
+        }
+
+        // Critical DOM Structure Tests
+        test('activeFilters element exists and is not commented out', async () => {
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            // Check if activeFilters is commented out
+            const commentedActiveFilters = htmlText.includes('<!-- <div class="active-filters" id="activeFilters">');
+            const uncommentedActiveFilters = htmlText.includes('<div class="active-filters" id="activeFilters">') && 
+                                           !htmlText.includes('<!-- <div class="active-filters" id="activeFilters">');
+            
+            if (commentedActiveFilters) {
+                throw new Error('activeFilters element is commented out - this breaks filter pill rendering');
+            }
+            
+            if (!uncommentedActiveFilters) {
+                throw new Error('activeFilters element not found in HTML - filter pills cannot be displayed');
+            }
+            
+            // Parse and check DOM
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const activeFiltersElement = doc.getElementById('activeFilters');
+            
+            if (!activeFiltersElement) {
+                throw new Error('activeFilters element parsed but not accessible via getElementById');
+            }
+        }, true);
+
+        test('All filter-related elements exist and are accessible', async () => {
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            const requiredFilterElements = [
+                { id: 'filterBtn', description: 'Filter toggle button' },
+                { id: 'filterPanel', description: 'Filter dropdown panel' },
+                { id: 'filterKey', description: 'Key filter dropdown' },
+                { id: 'filterArtist', description: 'Artist filter dropdown' },
+                { id: 'filterYear', description: 'Year filter dropdown' },
+                { id: 'filterEmA', description: 'Em&A filter dropdown' },
+                { id: 'searchSong', description: 'Song search input' },
+                { id: 'clearFilters', description: 'Clear filters button' }
+            ];
+            
+            const missingElements = [];
+            
+            requiredFilterElements.forEach(({ id, description }) => {
+                const element = doc.getElementById(id);
+                if (!element) {
+                    missingElements.push(`${id} (${description})`);
+                }
+            });
+            
+            if (missingElements.length > 0) {
+                throw new Error(`Missing required filter elements: ${missingElements.join(', ')}`);
+            }
+        }, true);
+
+        test('HTML comments are properly balanced', async () => {
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            const lines = htmlText.split('\n');
+            const commentIssues = [];
+            
+            lines.forEach((line, index) => {
+                const lineNum = index + 1;
+                
+                // Check for malformed comments
+                if (line.includes('<!--') && !line.includes('-->')) {
+                    // Check if comment is closed on subsequent lines
+                    let found = false;
+                    for (let i = index + 1; i < lines.length; i++) {
+                        if (lines[i].includes('-->')) {
+                            found = true;
+                            break;
+                        }
+                        // Stop looking after 10 lines to avoid false positives
+                        if (i - index > 10) break;
+                    }
+                    if (!found) {
+                        commentIssues.push(`Line ${lineNum}: Unclosed comment starting with "<!--"`);
+                    }
+                }
+                
+                // Check for orphaned closing comments
+                if (line.includes('-->') && !line.includes('<!--')) {
+                    let found = false;
+                    for (let i = index - 1; i >= 0; i--) {
+                        if (lines[i].includes('<!--')) {
+                            found = true;
+                            break;
+                        }
+                        // Stop looking after 10 lines
+                        if (index - i > 10) break;
+                    }
+                    if (!found) {
+                        commentIssues.push(`Line ${lineNum}: Orphaned comment closing "-->"`);
+                    }
+                }
+            });
+            
+            if (commentIssues.length > 0) {
+                throw new Error(`HTML comment issues found:\n${commentIssues.join('\n')}`);
+            }
+        }, true);
+
+        test('JavaScript can access all required DOM elements', () => {
+            // Create a test page structure based on what's expected
+            const testContainer = document.createElement('div');
+            testContainer.innerHTML = `
+                <div class="controls">
+                    <div class="active-filters" id="activeFilters"></div>
+                    <div class="filter-dropdown">
+                        <button class="filter-btn" id="filterBtn"></button>
+                        <div class="filter-panel" id="filterPanel">
+                            <select id="filterKey"></select>
+                            <select id="filterArtist"></select>
+                            <select id="filterYear"></select>
+                            <select id="filterEmA"></select>
+                            <input type="text" id="searchSong" />
+                            <button id="clearFilters"></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="main-content">
+                    <table id="songTable">
+                        <tbody id="songTableBody"></tbody>
+                    </table>
+                    <div id="detailCard" class="detail-card hidden"></div>
+                </div>
+                <div class="header">
+                    <div class="playlist-dropdown">
+                        <button id="playlistBtn"></button>
+                        <div id="playlistPanel"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(testContainer);
+            
+            // Test the exact code patterns from index.html
+            const activeFiltersContainer = document.getElementById('activeFilters');
+            const filterBtn = document.getElementById('filterBtn');
+            const filterPanel = document.getElementById('filterPanel');
+            
+            if (!activeFiltersContainer) {
+                throw new Error('activeFiltersContainer is null - renderActiveFilters() will fail');
+            }
+            
+            if (!filterBtn || !filterPanel) {
+                throw new Error('Filter button or panel missing - filter dropdown won\'t work');
+            }
+            
+            // Test that we can manipulate these elements like the real code does
+            activeFiltersContainer.innerHTML = ''; // This should not throw
+            filterPanel.style.display = 'none'; // This should not throw
+            
+            document.body.removeChild(testContainer);
+        }, true);
+
+        test('renderActiveFilters function dependencies exist', async () => {
+            // Simulate the exact renderActiveFilters function logic
+            const mockActiveFilters = {
+                filterKey: 'C',
+                searchSong: 'test'
+            };
+            
+            // Create a proper DOM structure
+            const testContainer = document.createElement('div');
+            testContainer.innerHTML = '<div id="activeFilters"></div>';
+            document.body.appendChild(testContainer);
+            
+            const activeFiltersContainer = document.getElementById('activeFilters');
+            
+            if (!activeFiltersContainer) {
+                throw new Error('activeFiltersContainer not found - renderActiveFilters will fail with "Cannot read property \'innerHTML\' of null"');
+            }
+            
+            // Test the actual operations that renderActiveFilters does
+            activeFiltersContainer.innerHTML = '';
+            
+            Object.entries(mockActiveFilters).forEach(([key, value]) => {
+                if (value) {
+                    const pill = document.createElement('div');
+                    pill.className = 'filter-pill';
+                    pill.innerHTML = `<span>${key}: ${value}</span>`;
+                    activeFiltersContainer.appendChild(pill);
+                }
+            });
+            
+            assertTrue(activeFiltersContainer.children.length > 0, 'Filter pills should be created');
+            
+            document.body.removeChild(testContainer);
+        }, true);
+
+        test('Event listener setup will not fail on missing elements', async () => {
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            // Check elements that have event listeners attached in setupEventListeners()
+            const eventTargets = [
+                'filterBtn',
+                'filterPanel', 
+                'playlistBtn',
+                'playlistPanel',
+                'themeToggle',
+                'filterKey',
+                'filterArtist', 
+                'filterYear',
+                'filterEmA',
+                'searchSong',
+                'clearFilters'
+            ];
+            
+            const missingTargets = eventTargets.filter(id => !doc.getElementById(id));
+            
+            if (missingTargets.length > 0) {
+                throw new Error(`Event listener setup will fail - missing elements: ${missingTargets.join(', ')}`);
+            }
+        }, true);
+
+        test('CSS selector dependencies exist', async () => {
+            const response = await fetch('./index.html');
+            const htmlText = await response.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            // Check for elements referenced by CSS selectors in the JS
+            const selectorTargets = [
+                { selector: '.sortable', description: 'Sortable table headers' },
+                { selector: '.playlist-option', description: 'Playlist dropdown options' },
+                { selector: '.account-section', description: 'Account dropdown trigger' },
+                { selector: '.controls', description: 'Filter controls container' }
+            ];
+            
+            const missingSelectors = [];
+            
+            selectorTargets.forEach(({ selector, description }) => {
+                const elements = doc.querySelectorAll(selector);
+                if (elements.length === 0) {
+                    missingSelectors.push(`${selector} (${description})`);
+                }
+            });
+            
+            if (missingSelectors.length > 0) {
+                throw new Error(`CSS selector targets missing: ${missingSelectors.join(', ')}`);
+            }
+        });
+
+        test('Module import paths are valid', async () => {
+            try {
+                // Test the exact import from index.html
+                const { applyFilters, getPlaylistSongs, createFilterCriteria } = await import('./filters.js');
+                
+                if (typeof applyFilters !== 'function') {
+                    throw new Error('applyFilters import failed or not a function');
+                }
+                if (typeof getPlaylistSongs !== 'function') {
+                    throw new Error('getPlaylistSongs import failed or not a function');
+                }
+                if (typeof createFilterCriteria !== 'function') {
+                    throw new Error('createFilterCriteria import failed or not a function');
+                }
+            } catch (error) {
+                throw new Error(`Module import failed: ${error.message}`);
+            }
+        }, true);
+
+        // Display results
+        function displayResults() {
+            const resultsDiv = document.getElementById('test-results');
+            
+            let passed = 0;
+            let failed = 0;
+            let critical = 0;
+            
+            results.forEach(result => {
+                const div = document.createElement('div');
+                div.className = `test-result ${result.status}`;
+                
+                let icon = '✓';
+                if (result.status === 'fail') icon = '✗';
+                if (result.status === 'critical') icon = '🚨';
+                
+                if (result.status === 'pass') {
+                    passed++;
+                } else if (result.status === 'critical') {
+                    critical++;
+                    failed++;
+                } else {
+                    failed++;
+                }
+                
+                div.innerHTML = result.status === 'pass'
+                    ? `${icon} ${result.name}`
+                    : `${icon} ${result.name}<br><pre>${result.error}</pre>`;
+                    
+                resultsDiv.appendChild(div);
+            });
+
+            const summary = document.createElement('div');
+            summary.className = 'summary';
+            summary.innerHTML = `
+                <strong>DOM Validation Summary:</strong><br>
+                ✓ ${passed} passed<br>
+                ✗ ${failed} failed<br>
+                🚨 ${critical} critical failures<br><br>
+                ${critical > 0 ? 
+                    '<strong style="color: #d32f2f;">⚠️ Critical failures detected! These will break the application.</strong>' : 
+                    '<strong style="color: #2e7d32;">✓ All critical DOM dependencies are satisfied.</strong>'
+                }
+            `;
+            resultsDiv.appendChild(summary);
+        }
+
+        // Run tests after a brief delay to ensure DOM is ready
+        setTimeout(displayResults, 100);
+    </script>
+</body>
+</html>

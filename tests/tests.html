@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Tests</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .summary { margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Filter Function Tests</h1>
+    <div id="test-results"></div>
+
+    <script type="module">
+        import { applyFilters, getPlaylistSongs } from './filters.js';
+
+        const results = [];
+        
+        function test(name, fn) {
+            try {
+                fn();
+                results.push({ name, status: 'pass' });
+                console.log(`✓ ${name}`);
+            } catch (error) {
+                results.push({ name, status: 'fail', error: error.message });
+                console.error(`✗ ${name}: ${error.message}`);
+            }
+        }
+
+        function assertEqual(actual, expected, message = '') {
+            if (actual !== expected) {
+                throw new Error(`${message} Expected: ${expected}, Got: ${actual}`);
+            }
+        }
+
+        function assertTrue(value, message = '') {
+            if (!value) {
+                throw new Error(`${message} Expected truthy value, got: ${value}`);
+            }
+        }
+
+        // Sample test data
+        const testSongs = [
+            {
+                Index: 1, Card: 'A', Title: 'Music for Airports', Artist: 'Brian Eno',
+                Key: 'D', BPM: 83, Date: 1978, 'Em&a': '', Playlists: 'My Deck'
+            },
+            {
+                Index: 2, Card: '2', Title: 'All of Me', Artist: 'John Legend',
+                Key: 'A', Date: 2013, 'Em&a': '', Playlists: 'My Deck,8-Track'
+            },
+            {
+                Index: 15, Card: '2', Title: 'Christmas Time Is Here', Artist: 'Vince Guaraldi Trio',
+                Key: 'F', Date: 1965, 'Em&a': '', Playlists: '8-Track'
+            }
+        ];
+
+        // Run tests
+        test('applyFilters - no filters returns all songs', () => {
+            const result = applyFilters(testSongs, {});
+            assertEqual(result.length, 3);
+        });
+
+        test('applyFilters - filter by key', () => {
+            const result = applyFilters(testSongs, { key: 'D' });
+            assertEqual(result.length, 1);
+            assertEqual(result[0].Title, 'Music for Airports');
+        });
+
+        test('applyFilters - filter by artist', () => {
+            const result = applyFilters(testSongs, { artist: 'John Legend' });
+            assertEqual(result.length, 1);
+            assertEqual(result[0].Title, 'All of Me');
+        });
+
+        test('applyFilters - filter by year', () => {
+            const result = applyFilters(testSongs, { year: '2013' });
+            assertEqual(result.length, 1);
+            assertEqual(result[0].Artist, 'John Legend');
+        });
+
+        test('applyFilters - search by title (case insensitive)', () => {
+            const result = applyFilters(testSongs, { search: 'airports' });
+            assertEqual(result.length, 1);
+            assertEqual(result[0].Artist, 'Brian Eno');
+        });
+
+        test('applyFilters - search by artist', () => {
+            const result = applyFilters(testSongs, { search: 'legend' });
+            assertEqual(result.length, 1);
+            assertEqual(result[0].Title, 'All of Me');
+        });
+
+        test('applyFilters - multiple filters', () => {
+            const result = applyFilters(testSongs, { key: 'A', artist: 'John Legend' });
+            assertEqual(result.length, 1);
+            assertEqual(result[0].Title, 'All of Me');
+        });
+
+        test('applyFilters - no matches', () => {
+            const result = applyFilters(testSongs, { key: 'Z' });
+            assertEqual(result.length, 0);
+        });
+
+        test('getPlaylistSongs - My Deck playlist', () => {
+            const result = getPlaylistSongs(testSongs, 'my-deck');
+            assertEqual(result.length, 2);
+            assertTrue(result.every(song => song.Playlists.includes('My Deck')));
+        });
+
+        test('getPlaylistSongs - 8-Track playlist', () => {
+            const result = getPlaylistSongs(testSongs, '8-track');
+            assertEqual(result.length, 2);
+            assertTrue(result.every(song => song.Playlists.includes('8-Track')));
+        });
+
+        test('getPlaylistSongs - handles missing Playlists field', () => {
+            const songsWithMissing = [
+                { Title: 'Test Song', Playlists: undefined },
+                { Title: 'Another Song', Playlists: 'My Deck' }
+            ];
+            const result = getPlaylistSongs(songsWithMissing, 'my-deck');
+            assertEqual(result.length, 1);
+        });
+
+        // Display results
+        const resultsDiv = document.getElementById('test-results');
+        const passed = results.filter(r => r.status === 'pass').length;
+        const failed = results.filter(r => r.status === 'fail').length;
+
+        results.forEach(result => {
+            const div = document.createElement('div');
+            div.className = `test-result ${result.status}`;
+            div.innerHTML = result.status === 'pass' 
+                ? `✓ ${result.name}`
+                : `✗ ${result.name}: ${result.error}`;
+            resultsDiv.appendChild(div);
+        });
+
+        const summary = document.createElement('div');
+        summary.className = 'summary';
+        summary.innerHTML = `<strong>Test Summary:</strong> ${passed} passed, ${failed} failed`;
+        resultsDiv.appendChild(summary);
+    </script>
+</body>
+</html>
