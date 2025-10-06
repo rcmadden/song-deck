@@ -111,6 +111,104 @@
         let currentPlaylist = 'my-deck';
         let activeFilters = {};
 
+        /**
+         * SongDeckManager - Manages dual-index system with computed properties
+         * Separates data identity (Index) from presentation order (deckPosition)
+         */
+        class SongDeckManager {
+            constructor(songData) {
+                this.songs = songData;
+                this.positionCache = new Map();
+            }
+
+            /**
+             * Build position map: O(n log n) once per playlist, then O(1) lookups
+             * Caches result until invalidated
+             */
+            buildPositionMap(playlistName) {
+                const cacheKey = playlistName;
+
+                if (this.positionCache.has(cacheKey)) {
+                    return this.positionCache.get(cacheKey);
+                }
+
+                // Filter songs by playlist membership
+                const filtered = this.songs.filter(s => {
+                    const playlists = s.Playlists || '';
+                    return playlists.includes(playlistName === 'my-deck' ? 'My Deck' : '8-Track');
+                });
+
+                // Sort based on playlist type
+                filtered.sort((a, b) => {
+                    if (playlistName === 'my-deck') {
+                        return parseInt(a.Index) - parseInt(b.Index);
+                    } else if (playlistName === '8-track') {
+                        const aOrder = parseInt(a['8TrackOrder']) || 999;
+                        const bOrder = parseInt(b['8TrackOrder']) || 999;
+                        return aOrder - bOrder;
+                    }
+                    return 0;
+                });
+
+                // Build O(1) lookup map: songIndex -> deckPosition
+                const positionMap = new Map(
+                    filtered.map((song, idx) => [song.Index, idx + 1])
+                );
+
+                this.positionCache.set(cacheKey, positionMap);
+                return positionMap;
+            }
+
+            /**
+             * Get display properties for a song (pure function)
+             */
+            getSongDisplay(song, playlistName) {
+                const positionMap = this.buildPositionMap(playlistName);
+                const deckPosition = positionMap.get(song.Index);
+
+                if (playlistName === 'my-deck') {
+                    return {
+                        position: deckPosition,
+                        suit: this.getSuit(deckPosition),
+                        card: song.Card,
+                        display: `${this.getSuit(deckPosition)} ${song.Card}`
+                    };
+                } else {
+                    return {
+                        position: deckPosition,
+                        suit: null,
+                        card: null,
+                        display: `${deckPosition}`
+                    };
+                }
+            }
+
+            /**
+             * Calculate suit based on deck position (1-52 for My Deck)
+             */
+            getSuit(deckPosition) {
+                if (!deckPosition || deckPosition <= 0) return '🃏';
+                if (deckPosition <= 13) return '♣️';
+                if (deckPosition <= 26) return '♦️';
+                if (deckPosition <= 39) return '♠️';
+                return '♥️';
+            }
+
+            /**
+             * Invalidate cache when data changes
+             */
+            invalidateCache(playlistName = null) {
+                if (playlistName) {
+                    this.positionCache.delete(playlistName);
+                } else {
+                    this.positionCache.clear();
+                }
+            }
+        }
+
+        // Initialize deck manager (will be set after CSV loads)
+        let deckManager = null;
+
         // Theme management
         function initializeTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
@@ -339,13 +437,16 @@
                 }
 
                 songData = parsed.data;
-                
+
+                // Initialize deck manager with loaded data
+                deckManager = new SongDeckManager(songData);
+
                 currentPlaylist = 'my-deck';
                 filteredData = songData.filter(song => {
                     const playlists = song.Playlists || '';
                     return playlists.includes('My Deck');
                 });
-                
+
                 populateFilters();
                 renderSongTable();
                 setupEventListeners();
@@ -682,30 +783,17 @@
             populateFilters();
         }
 
+        /**
+         * Apply 8-Track ordering using deck manager
+         * The ordering is now data-driven via CSV 8TrackOrder column
+         */
         function apply8TrackOrdering() {
-            const trackOrder = [
-                'Nocturne in D Minor',
-                'All of Me', 
-                'If I Aint Got You',
-                'Tennessee Whiskey',
-                'Hold Me',
-                'Christmas Time Is Here',
-                'Ode To Joyful',
-                'Piano Sonata No. 14'
-            ];
-            
+            if (!deckManager) return;
+
             filteredData.sort((a, b) => {
-                const aIndex = trackOrder.indexOf(a.Title);
-                const bIndex = trackOrder.indexOf(b.Title);
-                
-                if (aIndex !== -1 && bIndex !== -1) {
-                    return aIndex - bIndex;
-                }
-                
-                if (aIndex !== -1) return -1;
-                if (bIndex !== -1) return 1;
-                
-                return (a.Title || '').localeCompare(b.Title || '');
+                const aOrder = parseInt(a['8TrackOrder']) || 999;
+                const bOrder = parseInt(b['8TrackOrder']) || 999;
+                return aOrder - bOrder;
             });
         }
 
@@ -723,11 +811,14 @@
                 
                 const clubCell = document.createElement('td');
                 clubCell.className = 'club';
-                
-                if (currentPlaylist === '8-track') {
-                    clubCell.textContent = (index + 1).toString();
+
+                // Use deck manager for computed display
+                if (deckManager) {
+                    const display = deckManager.getSongDisplay(song, currentPlaylist);
+                    clubCell.textContent = display.display;
                 } else {
-                    clubCell.textContent = getSuitSymbol(song.Index, song.Card) + ' ' + song.Card;
+                    // Fallback if manager not initialized
+                    clubCell.textContent = `${song.Index} ${song.Card}`;
                 }
                 row.appendChild(clubCell);
                 
@@ -792,11 +883,12 @@
             const notesHTML = convertNotesToLinks(song.Notes);
             
             let cardDisplay = '';
-            if (currentPlaylist === '8-track') {
-                const trackIndex = filteredData.findIndex(s => s.Index === song.Index) + 1;
-                cardDisplay = `${trackIndex}`;
+            if (deckManager) {
+                const display = deckManager.getSongDisplay(song, currentPlaylist);
+                cardDisplay = display.display;
             } else {
-                cardDisplay = `${getSuitSymbol(song.Index, song.Card)} ${song.Card}`;
+                // Fallback
+                cardDisplay = `${song.Index} ${song.Card}`;
             }
             
             detailCard.innerHTML = `

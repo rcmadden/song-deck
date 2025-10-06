@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck Manager Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <h1>SongDeckManager Test</h1>
+    <div id="output"></div>
+
+    <script>
+        class SongDeckManager {
+            constructor(songData) {
+                this.songs = songData;
+                this.positionCache = new Map();
+            }
+
+            buildPositionMap(playlistName) {
+                const cacheKey = playlistName;
+
+                if (this.positionCache.has(cacheKey)) {
+                    return this.positionCache.get(cacheKey);
+                }
+
+                const filtered = this.songs.filter(s => {
+                    const playlists = s.Playlists || '';
+                    return playlists.includes(playlistName === 'my-deck' ? 'My Deck' : '8-Track');
+                });
+
+                filtered.sort((a, b) => {
+                    if (playlistName === 'my-deck') {
+                        return parseInt(a.Index) - parseInt(b.Index);
+                    } else if (playlistName === '8-track') {
+                        const aOrder = parseInt(a['8TrackOrder']) || 999;
+                        const bOrder = parseInt(b['8TrackOrder']) || 999;
+                        return aOrder - bOrder;
+                    }
+                    return 0;
+                });
+
+                const positionMap = new Map(
+                    filtered.map((song, idx) => [song.Index, idx + 1])
+                );
+
+                this.positionCache.set(cacheKey, positionMap);
+                return positionMap;
+            }
+
+            getSongDisplay(song, playlistName) {
+                const positionMap = this.buildPositionMap(playlistName);
+                const deckPosition = positionMap.get(song.Index);
+
+                if (playlistName === 'my-deck') {
+                    return {
+                        position: deckPosition,
+                        suit: this.getSuit(deckPosition),
+                        card: song.Card,
+                        display: `${this.getSuit(deckPosition)} ${song.Card}`
+                    };
+                } else {
+                    return {
+                        position: deckPosition,
+                        suit: null,
+                        card: null,
+                        display: `${deckPosition}`
+                    };
+                }
+            }
+
+            getSuit(deckPosition) {
+                if (!deckPosition || deckPosition <= 0) return '🃏';
+                if (deckPosition <= 13) return '♣️';
+                if (deckPosition <= 26) return '♦️';
+                if (deckPosition <= 39) return '♠️';
+                return '♥️';
+            }
+        }
+
+        async function runTests() {
+            const response = await fetch('songDB.csv');
+            const csvText = await response.text();
+            const parsed = Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                dynamicTyping: true
+            });
+
+            const songData = parsed.data;
+            const manager = new SongDeckManager(songData);
+
+            let output = '<h2>My Deck Tests</h2><ul>';
+
+            // Test My Deck positions
+            const myDeckSongs = songData.filter(s => (s.Playlists || '').includes('My Deck'));
+            myDeckSongs.forEach(song => {
+                const display = manager.getSongDisplay(song, 'my-deck');
+                output += `<li>Index ${song.Index}: "${song.Title}" → Position ${display.position} ${display.display}</li>`;
+            });
+
+            output += '</ul><h2>8-Track Tests</h2><ul>';
+
+            // Test 8-Track positions
+            const trackSongs = songData.filter(s => (s.Playlists || '').includes('8-Track'));
+            const sortedTrack = trackSongs.sort((a, b) => {
+                const aOrder = parseInt(a['8TrackOrder']) || 999;
+                const bOrder = parseInt(b['8TrackOrder']) || 999;
+                return aOrder - bOrder;
+            });
+
+            sortedTrack.forEach(song => {
+                const display = manager.getSongDisplay(song, '8-track');
+                output += `<li>8TrackOrder ${song['8TrackOrder']}: "${song.Title}" → Position ${display.position}</li>`;
+            });
+
+            output += '</ul>';
+
+            // Verify critical tests
+            output += '<h2>Verification</h2><ul>';
+            const nocturne = songData.find(s => s.Title === 'Nocturne in D Minor');
+            const nocturneMyDeck = manager.getSongDisplay(nocturne, 'my-deck');
+            const nocturne8Track = manager.getSongDisplay(nocturne, '8-track');
+
+            output += `<li>✓ Nocturne (Index 14) in My Deck: Position ${nocturneMyDeck.position}, Display: ${nocturneMyDeck.display} (Should be ♦️ A)</li>`;
+            output += `<li>✓ Nocturne (8TrackOrder 1) in 8-Track: Position ${nocturne8Track.position} (Should be 1)</li>`;
+
+            output += '</ul>';
+
+            document.getElementById('output').innerHTML = output;
+        }
+
+        runTests();
+    </script>
+</body>
+</html>
