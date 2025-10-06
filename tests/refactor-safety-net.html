@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Refactor Safety Net Tests</title>
+    <style>
+        body { font-family: sans-serif; }
+        .test-results { list-style-type: none; padding: 0; }
+        .test-results li { margin-bottom: 5px; padding: 5px; border-left: 5px solid; }
+        .pass { background-color: #e9fde9; border-color: #4caf50; }
+        .fail { background-color: #fde9e9; border-color: #f44336; }
+        #app-frame { width: 100%; height: 400px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Refactor Safety Net Tests</h1>
+    <p>These tests verify the core functionality before and after the MVC refactor.</p>
+    <ul id="test-results" class="test-results"></ul>
+    <hr>
+    <h2>Application Preview</h2>
+    <iframe id="app-frame" src="../index.html"></iframe>
+
+    <script>
+        const testResults = document.getElementById('test-results');
+        const appFrame = document.getElementById('app-frame');
+        let appWindow;
+
+        // Simple assertion library
+        const assert = {
+            isTrue: function(value, message) {
+                if (value !== true) {
+                    throw new Error(message);
+                }
+            },
+            strictEqual: function(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(`${message}: Expected "${expected}", but got "${actual}".`);
+                }
+            },
+            isNotNull: function(value, message) {
+                if (value === null || value === undefined) {
+                    throw new Error(message);
+                }
+            }
+        };
+
+        // Test runner
+        async function runTest(name, testFn) {
+            const li = document.createElement('li');
+            li.textContent = `Running: ${name}...`;
+            testResults.appendChild(li);
+            try {
+                await testFn();
+                li.textContent = `✅ PASS: ${name}`;
+                li.classList.add('pass');
+            } catch (error) {
+                li.textContent = `❌ FAIL: ${name} - ${error.message}`;
+                li.classList.add('fail');
+                console.error(`Test failed: ${name}`, error);
+            }
+        }
+        
+        // Helper to wait for elements to appear in the iframe
+        function waitForEl(selector, timeout = 2000) {
+            return new Promise((resolve, reject) => {
+                const interval = 100;
+                let elapsedTime = 0;
+                const timer = setInterval(() => {
+                    const el = appWindow.document.querySelector(selector);
+                    if (el) {
+                        clearInterval(timer);
+                        resolve(el);
+                    }
+                    elapsedTime += interval;
+                    if (elapsedTime > timeout) {
+                        clearInterval(timer);
+                        reject(new Error(`Timeout waiting for selector: "${selector}"`));
+                    }
+                }, interval);
+            });
+        }
+        
+        // --- TEST CASES ---
+        
+        async function testInitialLoad() {
+            const tableBody = await waitForEl('#songTableBody');
+            assert.isTrue(tableBody.rows.length > 5, 'Table should have several rows');
+            
+            const firstRow = tableBody.rows[0];
+            const cardCell = firstRow.cells[0];
+            const titleCell = firstRow.cells[1].querySelector('.song-title');
+
+            // Verify "My Deck" default view (based on Index sort)
+            assert.strictEqual(cardCell.textContent, '♣️ A', 'First card should be Ace of Clubs');
+
+            assert.strictEqual(titleCell.textContent.toLowerCase(), 'music for airports', 'First song title should be correct (case-insensitive)');
+        }
+
+        async function testSwitchTo8Track() {
+            const eightTrackButton = await waitForEl('.playlist-option[data-playlist="8-track"]');
+            eightTrackButton.click();
+            
+            // Wait for re-render
+            await new Promise(r => setTimeout(r, 200)); 
+            
+            const tableBody = await waitForEl('#songTableBody');
+            const firstRow = tableBody.rows[0];
+            const positionCell = firstRow.cells[0];
+            const titleCell = firstRow.cells[1].querySelector('.song-title');
+            
+            // Verify "8-Track" view (based on 8TrackOrder sort)
+            assert.strictEqual(positionCell.textContent, '1', 'First position for 8-Track should be 1');
+            assert.strictEqual(titleCell.textContent, 'Nocturne in D Minor', 'First song on 8-Track should be correct');
+        }
+
+        async function testShowDetailCard() {
+             // Switch back to My Deck to have a predictable state
+            const myDeckButton = await waitForEl('.playlist-option[data-playlist="my-deck"]');
+            myDeckButton.click();
+            await new Promise(r => setTimeout(r, 200));
+
+
+                        // Find the specific row for 'Music For Airports' to ensure a deterministic test
+            const allTitleCells = appWindow.document.querySelectorAll('.song-title');
+            let songRow;
+            allTitleCells.forEach(cell => {
+                if (cell.textContent.toLowerCase() === 'music for airports') {
+                    songRow = cell.closest('tr');
+                }
+            });
+            assert.isNotNull(songRow, "Could not find the row for 'Music For Airports'");
+            songRow.click();
+            
+            const detailCard = await waitForEl('#detailCard:not(.hidden)');
+            const detailTitle = detailCard.querySelector('h2');
+            
+            assert.isNotNull(detailTitle, 'Detail card should have a title');
+
+            assert.strictEqual(detailTitle.textContent.toLowerCase(), 'music for airports', 'Detail card title should match clicked row (case-insensitive)');
+        }
+
+        // --- RUN ALL TESTS ---
+        appFrame.addEventListener('load', async () => {
+            appWindow = appFrame.contentWindow;
+            await runTest("Initial Load shows 'My Deck' correctly", testInitialLoad);
+            await runTest("Switching to '8-Track' playlist works", testSwitchTo8Track);
+            await runTest("Clicking a song shows the detail card", testShowDetailCard);
+        });
+
+    </script>
+</body>
+</html>
