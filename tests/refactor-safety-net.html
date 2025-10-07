@@ -80,6 +80,20 @@
             });
         }
         
+        // Helper function to reset the app to a known clean state
+        async function resetAppState() {
+            // Use a try-catch in case the clear button isn't visible
+            try {
+                const clearButton = appWindow.document.getElementById('clearFilters');
+                if (clearButton) clearButton.click();
+            } catch (e) { /* Ignore if not found */ }
+
+            const myDeckButton = await waitForEl('.playlist-option[data-playlist="my-deck"]');
+            myDeckButton.click();
+            
+            await new Promise(r => setTimeout(r, 250)); // Allow for render and state update
+        }
+
         // --- TEST CASES ---
         
         async function testInitialLoad() {
@@ -92,7 +106,6 @@
 
             // Verify "My Deck" default view (based on Index sort)
             assert.strictEqual(cardCell.textContent, '♣️ A', 'First card should be Ace of Clubs');
-
             assert.strictEqual(titleCell.textContent.toLowerCase(), 'music for airports', 'First song title should be correct (case-insensitive)');
         }
 
@@ -119,7 +132,6 @@
             myDeckButton.click();
             await new Promise(r => setTimeout(r, 200));
 
-
                         // Find the specific row for 'Music For Airports' to ensure a deterministic test
             const allTitleCells = appWindow.document.querySelectorAll('.song-title');
             let songRow;
@@ -135,9 +147,103 @@
             const detailTitle = detailCard.querySelector('h2');
             
             assert.isNotNull(detailTitle, 'Detail card should have a title');
-
             assert.strictEqual(detailTitle.textContent.toLowerCase(), 'music for airports', 'Detail card title should match clicked row (case-insensitive)');
         }
+
+        async function testSuitBoundaries() {
+            await resetAppState();
+            const tableBody = await waitForEl('#songTableBody');
+            
+            const song13Row = Array.from(tableBody.rows).find(row => row.textContent.includes("Hold Me"));
+            assert.isNotNull(song13Row, "Could not find song with Index 13 ('Hold Me')");
+            assert.strictEqual(song13Row.cells[0].textContent, '♣️ K', 'Index 13 should be King of Clubs');
+
+            const song14Row = Array.from(tableBody.rows).find(row => row.textContent.includes("Nocturne in D Minor"));
+            assert.isNotNull(song14Row, "Could not find song with Index 14 ('Nocturne in D Minor')");
+            assert.strictEqual(song14Row.cells[0].textContent, '♦️ A', 'Index 14 should be Ace of Diamonds');
+        }
+
+        async function testFilteringByKey() {
+            await resetAppState();
+            const keyFilter = await waitForEl('#filterKey');
+            keyFilter.value = 'A';
+            keyFilter.dispatchEvent(new Event('change'));
+
+            await new Promise(r => setTimeout(r, 200));
+
+            const filterPill = await waitForEl('.filter-pill');
+            assert.isNotNull(filterPill, "Filter pill should be visible");
+            assert.isTrue(filterPill.textContent.trim().startsWith("Key: A"), "Filter pill should show 'Key: A'");
+
+            const tableBody = await waitForEl('#songTableBody');
+            assert.strictEqual(tableBody.rows.length, 2, "Table should be filtered to exactly 2 rows for Key 'A'");
+            assert.isTrue(tableBody.textContent.includes("All of Me"), "Table should include 'All of Me'");
+        }
+
+        async function testColumnSorting() {
+            await resetAppState();
+            const cardHeader = await waitForEl('th[data-sort="card"]');
+            
+            // First click should sort DESCENDING by Index
+            cardHeader.click();
+            await new Promise(r => setTimeout(r, 200));
+
+            let tableBody = await waitForEl('#songTableBody');
+            let firstRowTitle = tableBody.rows[0].querySelector('.song-title').textContent;
+            assert.strictEqual(firstRowTitle.toLowerCase(), 'lean on me', 'First click on card sort should be highest index (desc)');
+
+            // Second click should sort ASCENDING by Index (back to default)
+            cardHeader.click();
+            await new Promise(r => setTimeout(r, 200));
+
+            tableBody = await waitForEl('#songTableBody');
+            firstRowTitle = tableBody.rows[0].querySelector('.song-title').textContent;
+            assert.strictEqual(firstRowTitle.toLowerCase(), 'music for airports', 'Second click on card sort should be lowest index (asc)');
+        }
+
+        async function testSortBySongTitle() {
+            await resetAppState();
+            const songHeader = await waitForEl('th[data-sort="song"]');
+            
+            // First click should sort DESCENDING alphabetically
+            songHeader.click();
+            await new Promise(r => setTimeout(r, 200));
+            let tableBody = await waitForEl('#songTableBody');
+            let firstRowTitle = tableBody.rows[0].querySelector('.song-title').textContent;
+            assert.strictEqual(firstRowTitle.toLowerCase(), '(what a) wonderful world', '(Failing Test) First click on song sort should be reverse alphabetical (desc)');
+
+            // Second click should sort ASCENDING alphabetically
+            songHeader.click();
+            await new Promise(r => setTimeout(r, 200));
+            tableBody = await waitForEl('#songTableBody');
+            firstRowTitle = tableBody.rows[0].querySelector('.song-title').textContent;
+            assert.strictEqual(firstRowTitle.toLowerCase(), 'all of me', '(Failing Test) Second click on song sort should be alphabetical (asc)');
+        }
+
+        async function testSearchAndClear() {
+            await resetAppState();
+            const searchInput = await waitForEl('#searchSong');
+            searchInput.value = 'me';
+            searchInput.dispatchEvent(new Event('input'));
+            await new Promise(r => setTimeout(r, 200));
+
+            const searchPill = await waitForEl('.filter-pill');
+            assert.isTrue(searchPill.textContent.includes('Search: me'), 'Search pill should be visible');
+            
+            const initialRowCount = appWindow.document.querySelectorAll('#songTableBody tr').length;
+            assert.strictEqual(initialRowCount, 4, 'Table should be filtered to 4 rows for search term "me"');
+            
+            const removeButton = searchPill.querySelector('.remove-filter');
+            removeButton.click();
+            await new Promise(r => setTimeout(r, 200));
+            
+            const finalRowCount = appWindow.document.querySelectorAll('#songTableBody tr').length;
+            assert.isTrue(finalRowCount > initialRowCount, 'Table should have more rows after clearing the filter');
+            
+            const pillAfterRemove = appWindow.document.querySelector('.filter-pill');
+            assert.strictEqual(pillAfterRemove, null, 'Filter pill should be removed after clicking the x');
+        }
+
 
         // --- RUN ALL TESTS ---
         appFrame.addEventListener('load', async () => {
@@ -145,6 +251,11 @@
             await runTest("Initial Load shows 'My Deck' correctly", testInitialLoad);
             await runTest("Switching to '8-Track' playlist works", testSwitchTo8Track);
             await runTest("Clicking a song shows the detail card", testShowDetailCard);
+            await runTest("Suit boundaries are calculated correctly", testSuitBoundaries);
+            await runTest("Filtering by Key works correctly", testFilteringByKey);
+            await runTest("Sorting by Card header works as expected", testColumnSorting);
+            await runTest("Search and clear filter pill works", testSearchAndClear);
+            await runTest("Sorting by Song Title works alphabetically (EXPECTED TO FAIL)", testSortBySongTitle);
         });
 
     </script>

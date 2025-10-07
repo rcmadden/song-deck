@@ -17,18 +17,17 @@ song-deck/
 └── souvenirs/          # Referenced documents (PDFs, images, markdown)
 ```
 
-### Target Structure (Modern)
+### Target Structure (Post-Refactor)
 ```
-src/
-├── js/
-│   ├── app.js              # Application entry point
-│   ├── song-card.js        # Card rendering logic
-│   └── playlist-manager.js # Playlist-specific logic
-├── css/
-│   ├── components.css      # Card and UI components
-│   └── themes.css         # Dark/light theme variables
-└── data/
-    └── songDB.csv
+song-deck/
+├── data/
+│   ├── playlists.json      # Defines playlist types and orders
+│   └── songDB.csv          # Master song list
+├── index.html              # App shell with embedded MVC JavaScript logic
+├── styles.css
+├── plan.md                 # Current development plan
+└── tests/
+    └── refactor-safety-net.html # Test suite for the refactor
 ```
 
 ## Data Schema
@@ -37,7 +36,7 @@ src/
 // Song record structure from CSV
 {
   index: number,           // Unique ID (determines suit)
-  card: string,           // A, 2-10, J, Q, K
+  // card: string,        // NOTE: This will be removed and computed by the View.
   title: string,
   artist: string,
   key: string,            // Musical key notation
@@ -45,9 +44,9 @@ src/
   year: number,
   puzzlePiece: string,    // Musical concept/chord progression
   emAndA: string,         // Musical notation category
-  notes: string[],        // Document URLs (comma-separated)
+  notes: string,          // Comma-separated document URLs
   timeSignature: string,
-  playlists: string[]     // Comma-separated playlist names
+  playlists: string       // Comma-separated playlist names
 }
 ```
 
@@ -65,9 +64,11 @@ const getSuit = (index) => {
 };
 ```
 
-### Playlist System
-- **"My Deck"**: User-customizable playlist with local storage
-- **"8-Track"**: Predefined ordering (currently hardcoded in `apply8TrackOrdering()`)
+### Playlist System (New)
+- **Data-Driven:** Playlists are now defined in `data/playlists.json`.
+- **`type: "deck"`**: Sorted automatically by `Index` (e.g., My Deck).
+- **`type: "ordered-list"`**: Sorted by a custom `order` array of song indices (e.g., 8-Track).
+- See `plan.md` for full details.
 
 ## Development Commands
 
@@ -88,9 +89,9 @@ npm run build
    - Move 700+ lines to separate modules
    - Implement proper module system
 
-2. **High**: Make 8-Track playlist data-driven
-   - Remove hardcoded song order from `apply8TrackOrdering()`
-   - Use CSV playlist field or separate config
+2. **IN PROGRESS**: Make playlists data-driven via `data/playlists.json`.
+   - This is the core of the current refactoring effort.
+   - See [plan.md](./plan.md) for details.
 
 3. **Medium**: Add error boundaries and loading states
    - Handle CSV parsing failures gracefully
