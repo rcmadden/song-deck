@@ -14,23 +14,27 @@ All refactoring will be guided by a test suite to prevent regressions.
     1.  Correct initial load of the "My Deck" playlist.
     2.  Correctly switching to the "8-Track" playlist.
     3.  Displaying the detail card when a song is clicked.
-- **Workflow:** The refactored application must pass all tests in the safety net, ensuring no existing functionality is broken. New tests will be added for new features.
+- **Workflow:** After each significant change, run `tests/refactor-safety-net.html` in a browser to verify that all tests pass. The refactored application must pass all tests in the safety net, ensuring no existing functionality is broken. New tests will be added for new features.
 
 ## 3. Data Structure Overhaul
 
-We will separate song data from playlist presentation logic.
+We will separate song data from playlist presentation logic using a flexible, standards-based approach.
 
-- **`songDB.csv`:** This file will be the single source of truth for all song data.
-    - The `Card` and `8TrackOrder` columns will be removed. Its only job is to list songs and their attributes.
-- **`data/playlists.json` (New File):** This file will define all available playlists and their behavior.
-    - It will specify the `name`, `type` (`deck` or `ordered-list`), and for `ordered-list` types, the explicit `order` of song `Index` values.
-    - This centralizes playlist management, making it easy to add or re-order playlists without touching the application code.
+- **`songDB.csv`:** This file is the master catalog for all songs and their properties. It is the single source of truth for playlist membership and ordering.
+    - A stable, unique `songId` column will be added to reliably identify each song.
+    - The `Playlists` column will specify which playlists a song belongs to (e.g., "My Deck, 8-Track").
+    - A generic `PlaylistOrders` column will define the explicit order for any `ordered-list` type playlist. The format is a key-value pair (e.g., `8-track:5, other-list:2`).
+    - Presentation-specific columns like `Index` and `8TrackOrder` will be removed.
+
+- **`data/playlists.json`:** **[COMPLETED]** This file acts as a rulebook, defining the existence and behavior of each playlist.
+    - It specifies the `id`, `name`, and `type` (`deck` or `ordered-list`) of each playlist.
+    - The application logic uses this file to determine how to interpret the data in `songDB.csv` for a given playlist.
 
 ## 4. `index.html` Refactoring Steps
 
 The script in `index.html` will be reorganized into the following components:
 
-- **Model:**
+- **Model:** **[COMPLETED]**
     - Responsible for fetching and parsing `songDB.csv` and `data/playlists.json`.
     - Provides methods like `getSongsForPlaylist(playlistName)` which handles the specific sorting logic based on the playlist's `type`.
     - Manages the application's state in memory.
