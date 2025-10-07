@@ -102,7 +102,7 @@
 
     <script type="module">
         // Import filter functions
-        import { applyFilters, getPlaylistSongs, createFilterCriteria } from './filters.js';
+        import { applyFilters, createFilterCriteria } from './filters.js';
         // This will store our song data
         let songData = [];
         let filteredData = [];
@@ -111,48 +111,103 @@
         let currentPlaylist = 'my-deck';
         let activeFilters = {};
 
+        // MVC Model
+        class Model {
+            constructor() {
+                this.songs = [];
+                this.playlists = [];
+            }
+
+            async loadData() {
+                try {
+                    const [songsResponse, playlistsResponse] = await Promise.all([
+                        fetch('songDB.csv'),
+                        fetch('data/playlists.json')
+                    ]);
+
+                    if (!songsResponse.ok) throw new Error('Failed to load songDB.csv');
+                    if (!playlistsResponse.ok) throw new Error('Failed to load data/playlists.json');
+
+                    const csvText = await songsResponse.text();
+                    this.playlists = await playlistsResponse.json();
+
+                    const parsed = Papa.parse(csvText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        dynamicTyping: true
+                    });
+
+                    if (parsed.errors.length) {
+                        parsed.errors.forEach(error => {
+                            console.warn(`CSV parsing warning on row ${error.row}: ${error.message}`);
+                        });
+                    }
+                    this.songs = parsed.data;
+                    return this;
+                } catch (error) {
+                    console.error('Error loading application data:', error);
+                    throw error;
+                }
+            }
+
+            getPlaylists() {
+                return this.playlists;
+            }
+
+            getSongsForPlaylist(playlistId) {
+                const playlist = this.playlists.find(p => p.id === playlistId);
+                if (!playlist) {
+                    console.warn(`Playlist with id "${playlistId}" not found.`);
+                    return [];
+                }
+
+                const playlistSongs = this.songs.filter(song => {
+                    const songPlaylists = song.Playlists || '';
+                    // Use the playlist *name* from the JSON to match against the CSV column
+                    return songPlaylists.includes(playlist.name);
+                });
+
+                if (playlist.type === 'ordered-list' && playlist.sortKey) {
+                    return playlistSongs.sort((a, b) => {
+                        const aOrder = parseInt(a[playlist.sortKey]) || 999;
+                        const bOrder = parseInt(b[playlist.sortKey]) || 999;
+                        return aOrder - bOrder;
+                    });
+                } else if (playlist.type === 'deck') {
+                    return playlistSongs.sort((a, b) => parseInt(a.Index) - parseInt(b.Index));
+                }
+
+                return playlistSongs;
+            }
+        }
+        const model = new Model();
+
         /**
          * SongDeckManager - Manages dual-index system with computed properties
          * Separates data identity (Index) from presentation order (deckPosition)
          */
         class SongDeckManager {
-            constructor(songData) {
-                this.songs = songData;
+            constructor() {
+                // The manager no longer holds song data directly.
                 this.positionCache = new Map();
             }
 
             /**
-             * Build position map: O(n log n) once per playlist, then O(1) lookups
-             * Caches result until invalidated
+             * Build position map: O(n) once per playlist, then O(1) lookups.
+             * Caches result until invalidated.
              */
-            buildPositionMap(playlistName) {
-                const cacheKey = playlistName;
-
+            buildPositionMap(playlistId) {
+                const cacheKey = playlistId;
                 if (this.positionCache.has(cacheKey)) {
                     return this.positionCache.get(cacheKey);
                 }
 
-                // Filter songs by playlist membership
-                const filtered = this.songs.filter(s => {
-                    const playlists = s.Playlists || '';
-                    return playlists.includes(playlistName === 'my-deck' ? 'My Deck' : '8-Track');
-                });
+                // Get sorted songs directly from the model.
+                const playlistSongs = model.getSongsForPlaylist(playlistId);
 
-                // Sort based on playlist type
-                filtered.sort((a, b) => {
-                    if (playlistName === 'my-deck') {
-                        return parseInt(a.Index) - parseInt(b.Index);
-                    } else if (playlistName === '8-track') {
-                        const aOrder = parseInt(a['8TrackOrder']) || 999;
-                        const bOrder = parseInt(b['8TrackOrder']) || 999;
-                        return aOrder - bOrder;
-                    }
-                    return 0;
-                });
-
-                // Build O(1) lookup map: songIndex -> deckPosition
+                // Build O(1) lookup map: song.Index -> deckPosition
                 const positionMap = new Map(
-                    filtered.map((song, idx) => [song.Index, idx + 1])
+                    playlistSongs.map((song, idx) => [song.Index, idx + 1])
                 );
 
                 this.positionCache.set(cacheKey, positionMap);
@@ -160,13 +215,14 @@
             }
 
             /**
-             * Get display properties for a song (pure function)
+             * Get display properties for a song (pure function).
              */
-            getSongDisplay(song, playlistName) {
-                const positionMap = this.buildPositionMap(playlistName);
+            getSongDisplay(song, playlistId) {
+                const positionMap = this.buildPositionMap(playlistId);
                 const deckPosition = positionMap.get(song.Index);
+                const playlist = model.getPlaylists().find(p => p.id === playlistId);
 
-                if (playlistName === 'my-deck') {
+                if (playlist && playlist.type === 'deck') {
                     return {
                         position: deckPosition,
                         suit: this.getSuit(deckPosition),
@@ -418,42 +474,24 @@
 
         async function loadSongData() {
             try {
-                const response = await fetch('songDB.csv');
-                if (!response.ok) throw new Error('Network response was not ok');
+                await model.loadData();
+                songData = model.songs; // Keep songData for other parts of the app for now
 
-                const csvText = await response.text();
+                // Initialize deck manager with all songs
+                deckManager = new SongDeckManager();
 
-                const parsed = Papa.parse(csvText, {
-                    header: true,
-                    skipEmptyLines: true,
-                    dynamicTyping: true
-                });
-
-                if (parsed.errors.length > 0) {
-                    console.error('PapaParse errors:', parsed.errors);
-                    parsed.errors.forEach(error => {
-                        console.warn(`CSV parsing warning on row ${error.row}: ${error.message}`);
-                    });
-                }
-
-                songData = parsed.data;
-
-                // Initialize deck manager with loaded data
-                deckManager = new SongDeckManager(songData);
-
+                // Set initial playlist and load its songs from the model
                 currentPlaylist = 'my-deck';
-                filteredData = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('My Deck');
-                });
+                filteredData = model.getSongsForPlaylist(currentPlaylist);
 
+                // Initial UI setup
                 populateFilters();
                 renderSongTable();
                 setupEventListeners();
             } catch (error) {
-                console.error('Error loading song data:', error);
+                // Model handles detailed error logging, just update UI
                 document.getElementById('songTableBody').innerHTML = `
-                    <tr><td colspan="4">⚠️ Error loading song data.</td></tr>`;
+                    <tr><td colspan="4">⚠️ Error loading application data.</td></tr>`;
             }
         }
 
@@ -514,18 +552,7 @@
         }
 
         function populateFilters() {
-            let playlistSongs;
-            if (currentPlaylist === '8-track') {
-                playlistSongs = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('8-Track');
-                });
-            } else {
-                playlistSongs = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('My Deck');
-                });
-            }
+            const playlistSongs = model.getSongsForPlaylist(currentPlaylist);
             
             const keys = [...new Set(playlistSongs.map(song => song.Key || '').filter(key => key))].sort();
             const artists = [...new Set(playlistSongs.map(song => song.Artist || '').filter(artist => artist))].sort();
@@ -580,7 +607,7 @@
         function filterData() {
             const filterCriteria = createFilterCriteria();
             
-            // Update activeFilters global (keeping existing structure)
+            // Update activeFilters global
             activeFilters = {
                 filterKey: filterCriteria.key,
                 filterArtist: filterCriteria.artist,
@@ -588,16 +615,12 @@
                 filterEmA: filterCriteria.emA,
                 searchSong: filterCriteria.search
             };
+
+            // Get the base songs for the current playlist from the model (already sorted).
+            const playlistSongs = model.getSongsForPlaylist(currentPlaylist);
             
-            // Apply playlist filtering first
-            const playlistSongs = getPlaylistSongs(songData, currentPlaylist);
-            
-            // Apply user filters
+            // Apply user-selected filters.
             filteredData = applyFilters(playlistSongs, filterCriteria);
-            
-            if (currentPlaylist === '8-track') {
-                apply8TrackOrdering();
-            }
             
             renderSongTable();
             renderActiveFilters();
@@ -648,18 +671,8 @@
             
             activeFilters = {};
             
-            if (currentPlaylist === '8-track') {
-                filteredData = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('8-Track');
-                });
-                apply8TrackOrdering();
-            } else {
-                filteredData = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('My Deck');
-                });
-            }
+            // Reset filteredData to the full, sorted list for the current playlist.
+            filteredData = model.getSongsForPlaylist(currentPlaylist);
             
             renderSongTable();
             renderActiveFilters();
@@ -746,56 +759,35 @@
             });
         }
 
-        function switchPlaylist(playlist) {
+        function switchPlaylist(playlistId) {
+            const playlist = model.getPlaylists().find(p => p.id === playlistId);
+            if (!playlist) return;
+
             const playlistBtn = document.querySelector('.playlist-btn h1');
-            currentPlaylist = playlist;
+            playlistBtn.textContent = playlist.name;
+            currentPlaylist = playlistId;
             
-            // Hide detail card when switching playlists (fixes the bug)
+            // Invalidate the deck manager's cache to ensure positions are re-calculated
+            deckManager.invalidateCache(playlistId);
+
+            // Hide detail card when switching playlists
             const detailCard = document.getElementById('detailCard');
             if (detailCard) {
                 detailCard.classList.add('hidden');
             }
-            
-            if (playlist === '8-track') {
-                playlistBtn.textContent = '8-Track';
-                filteredData = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('8-Track');
-                });
-                
-                apply8TrackOrdering();
-                
-                const controls = document.querySelector('.controls');
-                if (controls) controls.style.display = 'none';
-            } else {
-                playlistBtn.textContent = 'My Deck';
-                filteredData = songData.filter(song => {
-                    const playlists = song.Playlists || '';
-                    return playlists.includes('My Deck');
-                });
-                
-                const controls = document.querySelector('.controls');
-                if (controls) controls.style.display = 'flex';
+
+            // Show/hide controls based on playlist type
+            const controls = document.querySelector('.controls');
+            if (controls) {
+                controls.style.display = playlist.type === 'deck' ? 'flex' : 'none';
             }
             
-            clearAllFilters();
-            renderSongTable();
-            populateFilters();
+            // Reset filters and render the new playlist
+            clearAllFilters(); // This will now correctly load and render the new playlist
+            populateFilters(); // Re-populate filters based on the new song list
         }
 
-        /**
-         * Apply 8-Track ordering using deck manager
-         * The ordering is now data-driven via CSV 8TrackOrder column
-         */
-        function apply8TrackOrdering() {
-            if (!deckManager) return;
 
-            filteredData.sort((a, b) => {
-                const aOrder = parseInt(a['8TrackOrder']) || 999;
-                const bOrder = parseInt(b['8TrackOrder']) || 999;
-                return aOrder - bOrder;
-            });
-        }
 
         function renderSongTable() {
             const tableBody = document.getElementById('songTableBody');

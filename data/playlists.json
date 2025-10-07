@@ -1,0 +1,13 @@
+[
+  {
+    "id": "my-deck",
+    "name": "My Deck",
+    "type": "deck"
+  },
+  {
+    "id": "8-track",
+    "name": "8-Track",
+    "type": "ordered-list",
+    "sortKey": "8TrackOrder"
+  }
+]
