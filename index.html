@@ -137,12 +137,17 @@
                         dynamicTyping: true
                     });
 
+                                        console.log('CSV Headers from PapaParse:', parsed.meta.fields);
+
                     if (parsed.errors.length) {
                         parsed.errors.forEach(error => {
                             console.warn(`CSV parsing warning on row ${error.row}: ${error.message}`);
                         });
                     }
                     this.songs = parsed.data;
+                    if (this.songs.length > 0) {
+                        console.log('First song object after parsing:', JSON.parse(JSON.stringify(this.songs[0])));
+                    }
                     return this;
                 } catch (error) {
                     console.error('Error loading application data:', error);
@@ -508,6 +513,10 @@
                 if (column === 'card') {
                     aVal = parseInt(a.DeckOrder) || 0;
                     bVal = parseInt(b.DeckOrder) || 0;
+                    // Log first comparison to see what's happening
+                    if (filteredData.indexOf(a) === 0) {
+                        console.log(`Comparing in sortData: a.DeckOrder=${a.DeckOrder} (parsed as ${aVal}), b.DeckOrder=${b.DeckOrder} (parsed as ${bVal})`);
+                    }
                 } else if (column === 'song') {
                     aVal = (a.Title || '').toLowerCase();
                     bVal = (b.Title || '').toLowerCase();
