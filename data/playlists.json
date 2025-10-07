@@ -2,12 +2,12 @@
   {
     "id": "my-deck",
     "name": "My Deck",
-    "type": "deck"
+    "type": "deck",
+    "sortKey": "DeckOrder"
   },
   {
     "id": "8-track",
     "name": "8-Track",
-    "type": "ordered-list",
-    "sortKey": "8TrackOrder"
+    "type": "ordered-list"
   }
 ]

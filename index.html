@@ -163,18 +163,24 @@
 
                 const playlistSongs = this.songs.filter(song => {
                     const songPlaylists = song.Playlists || '';
-                    // Use the playlist *name* from the JSON to match against the CSV column
                     return songPlaylists.includes(playlist.name);
                 });
 
-                if (playlist.type === 'ordered-list' && playlist.sortKey) {
+                if (playlist.type === 'ordered-list') {
+                    const getOrder = (song) => {
+                        const orderData = (song.PlaylistOrders || '').split(',');
+                        const playlistOrder = orderData.find(o => o.startsWith(playlist.id + ':'));
+                        if (!playlistOrder) return 999;
+                        return parseFloat(playlistOrder.split(':')[1]) || 999;
+                    };
+                    return playlistSongs.sort((a, b) => getOrder(a) - getOrder(b));
+
+                } else if (playlist.type === 'deck' && playlist.sortKey) {
                     return playlistSongs.sort((a, b) => {
-                        const aOrder = parseInt(a[playlist.sortKey]) || 999;
-                        const bOrder = parseInt(b[playlist.sortKey]) || 999;
+                        const aOrder = parseInt(a.DeckOrder) || 999;
+                        const bOrder = parseInt(b.DeckOrder) || 999;
                         return aOrder - bOrder;
                     });
-                } else if (playlist.type === 'deck') {
-                    return playlistSongs.sort((a, b) => parseInt(a.Index) - parseInt(b.Index));
                 }
 
                 return playlistSongs;
@@ -188,38 +194,27 @@
          */
         class SongDeckManager {
             constructor() {
-                // The manager no longer holds song data directly.
                 this.positionCache = new Map();
             }
 
-            /**
-             * Build position map: O(n) once per playlist, then O(1) lookups.
-             * Caches result until invalidated.
-             */
             buildPositionMap(playlistId) {
                 const cacheKey = playlistId;
                 if (this.positionCache.has(cacheKey)) {
                     return this.positionCache.get(cacheKey);
                 }
 
-                // Get sorted songs directly from the model.
                 const playlistSongs = model.getSongsForPlaylist(playlistId);
-
-                // Build O(1) lookup map: song.Index -> deckPosition
                 const positionMap = new Map(
-                    playlistSongs.map((song, idx) => [song.Index, idx + 1])
+                    playlistSongs.map((song, idx) => [song.songId, idx + 1])
                 );
 
                 this.positionCache.set(cacheKey, positionMap);
                 return positionMap;
             }
 
-            /**
-             * Get display properties for a song (pure function).
-             */
             getSongDisplay(song, playlistId) {
                 const positionMap = this.buildPositionMap(playlistId);
-                const deckPosition = positionMap.get(song.Index);
+                const deckPosition = positionMap.get(song.songId);
                 const playlist = model.getPlaylists().find(p => p.id === playlistId);
 
                 if (playlist && playlist.type === 'deck') {
@@ -234,14 +229,11 @@
                         position: deckPosition,
                         suit: null,
                         card: null,
-                        display: `${deckPosition}`
+                        display: `${deckPosition || ''}`
                     };
                 }
             }
 
-            /**
-             * Calculate suit based on deck position (1-52 for My Deck)
-             */
             getSuit(deckPosition) {
                 if (!deckPosition || deckPosition <= 0) return '🃏';
                 if (deckPosition <= 13) return '♣️';
@@ -250,12 +242,9 @@
                 return '♥️';
             }
 
-            /**
-             * Invalidate cache when data changes
-             */
-            invalidateCache(playlistName = null) {
-                if (playlistName) {
-                    this.positionCache.delete(playlistName);
+            invalidateCache(playlistId = null) {
+                if (playlistId) {
+                    this.positionCache.delete(playlistId);
                 } else {
                     this.positionCache.clear();
                 }
@@ -313,7 +302,7 @@
                 });
                 
                 accountPanel.addEventListener('click', (e) => {
-                    e.stopPropagation();
+                    e.stopPropagation();p
                 });
                 
                 document.getElementById('profileOption')?.addEventListener('click', () => {
@@ -496,42 +485,51 @@
         }
 
         function sortData(column) {
-            if (column === 'card') {
-                sortColumn = 'card';
-                sortDirection = sortColumn === 'card' && sortDirection === 'asc' ? 'desc' : 'asc';
+            // --- DIAGNOSTIC LOG ---
+            if (filteredData.length > 0) {
+                console.log("Inspecting the first song object right before sorting:", JSON.parse(JSON.stringify(filteredData[0])));
+            }
+            // --- END LOG ---
+
+            // Step 1: Determine the correct sort direction
+            if (sortColumn === column) {
+                // If it's the same column, just toggle the direction
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
-                if (sortColumn === column) {
-                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortColumn = column;
-                    sortDirection = 'asc';
-                }
+                // If it's a new column, set the default direction
+                sortColumn = column;
+                sortDirection = column === 'card' ? 'desc' : 'asc'; // 'card' starts desc, others asc
             }
             
+            // Step 2: Sort the array using clear, readable logic
             filteredData.sort((a, b) => {
                 let aVal, bVal;
                 
                 if (column === 'card') {
-                    aVal = parseInt(a.Index) || 0;
-                    bVal = parseInt(b.Index) || 0;
+                    aVal = parseInt(a.DeckOrder) || 0;
+                    bVal = parseInt(b.DeckOrder) || 0;
                 } else if (column === 'song') {
                     aVal = (a.Title || '').toLowerCase();
                     bVal = (b.Title || '').toLowerCase();
                 } else if (column === 'key') {
                     aVal = (a.Key || '').toLowerCase();
                     bVal = (b.Key || '').toLowerCase();
-                } else if (column === 'artist') {
-                    aVal = (a.Artist || '').toLowerCase();
-                    bVal = (b.Artist || '').toLowerCase();
-                }
-                
-                if (sortDirection === 'asc') {
-                    return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
                 } else {
-                    return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                    return 0;
+                }
+
+                if (sortDirection === 'asc') {
+                    if (aVal < bVal) return -1;
+                    if (aVal > bVal) return 1;
+                    return 0;
+                } else { // sortDirection is 'desc'
+                    if (aVal > bVal) return -1;
+                    if (aVal < bVal) return 1;
+                    return 0;
                 }
             });
             
+            // Step 3: Update the UI with the sorted data
             updateSortIndicators();
             renderSongTable();
         }
