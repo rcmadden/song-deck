@@ -1,17 +1,12 @@
-# The backend specifies how to connect to your repository
 backend:
   name: github
-  repo: rcmadden/song-deck
-  branch: main
-  auth_type: implicit # Use client-side auth
+  repo: rcmadden/song-deck # Your GitHub username/repo
+  branch: main # The branch to update
+  auth_type: implicit # Use client-side-only implicit grant flow
   app_id: Ov23liXonunrmzyFr2DI # The Client ID from your GitHub OAuth App
-
-# These settings are for the GitHub backend
-display_url: https://rcmadden.github.io/song-deck
-site_url: https://rcmadden.github.io/song-deck
-
-# This line is needed for the GitHub API
-publish_mode: editorial_workflow
+  # These are settings for the backend
+  display_url: https://rcmadden.github.io/song-deck
+  site_url: https://rcmadden.github.io/song-deck
 
 media_folder: "souvenirs" # Where media files are stored
 public_folder: "/souvenirs" # The public path to media files
