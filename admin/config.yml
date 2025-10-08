@@ -1,0 +1,31 @@
+backend:
+  name: github
+  repo: rcmadden/song-deck # Your GitHub username/repo
+  branch: main # The branch to update
+
+# This line is needed for the GitHub API
+publish_mode: editorial_workflow
+
+media_folder: "souvenirs" # Where media files are stored
+public_folder: "/souvenirs" # The public path to media files
+
+collections:
+  - name: "songs" # Used in routes, e.g., /admin/collections/songs
+    label: "Songs" # Used in the UI
+    file: "songDB.csv" # The path to the file being edited
+    format: "csv" # Specify the format
+    fields:
+      # New, user-approved order for easier maintenance
+      - { label: "Deck Order", name: "DeckOrder", widget: "number", value_type: "int" }
+      - { label: "Playlists", name: "Playlists", widget: "string", hint: "Comma-separated, e.g., My Deck, 8-Track" }
+      - { label: "Playlist Orders", name: "PlaylistOrders", widget: "string", required: false, hint: "For ordered lists like 8-track, e.g., 8-track:1" }
+      - { label: "Title", name: "Title", widget: "string" }
+      - { label: "Artist", name: "Artist", widget: "string" }
+      - { label: "Key", name: "Key", widget: "string", required: false }
+      - { label: "Notes", name: "Notes", widget: "markdown", required: false }
+      - { label: "BPM", name: "BPM", widget: "number", required: false }
+      - { label: "Date", name: "Date", widget: "number", required: false }
+      - { label: "Puzzle Piece", name: "Puzzle Piece", widget: "string", required: false }
+      - { label: "Em&a", name: "Em&a", widget: "string", required: false }
+      - { label: "Time Signature", name: "Time Signature", widget: "string", required: false }
+      - { label: "Song ID", name: "songId", widget: "string", hint: "Unique ID, e.g., more-than-words-extreme. Should not be changed." }
