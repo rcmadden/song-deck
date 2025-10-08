@@ -266,12 +266,12 @@
 
             console.log('--- Running Display & Data Logic Tests ---');
             await runTest("Suit boundaries are calculated correctly", testSuitBoundaries);
-            await runTest("Suit Logic: Correctly handles gaps in DeckOrder", testSuitLogicWithGaps);
+            await runTest("Card Generation: Creates correct suit and value from DeckOrder", testCardGeneration);
 
             console.log('--- Running Notes Parsing Tests ---');
             await runTest("Notes: Renders a single plain text note ('Music for Airports')", testNotesParsing_SingleNote);
             await runTest("Notes: Renders two links ('Don\'t Know Why')", testNotesParsing_TwoLinks_DontKnowWhy);
-            await runTest("Notes: Renders two links ('Wonderful World - J. Batiste')", testNotesParsing_TwoLinks_JonBatiste);
+            await runTest("Notes: Renders two links correctly ('Wonderful World - J. Batiste')", testNotesParsing_TwoLinks_JonBatiste);
         });
 
         async function testNotesParsing_TwoLinks_JonBatiste() {
@@ -294,8 +294,8 @@
 
         async function testNotesParsing_TwoLinks_DontKnowWhy() {
             await resetAppState();
-
-            const songTitle = "'Don\'t Know Why'";
+            
+            const songTitle = "'Don't Know Why'";
             // This test assumes you have corrected the CSV for "Don't Know Why" to be comma-separated.
             const songRow = Array.from(appWindow.document.querySelectorAll('#songTableBody tr')).find(row => row.textContent.includes("Don't Know Why"));
             assert.isNotNull(songRow, `Could not find the row for ${songTitle}`);
@@ -327,16 +327,20 @@
             assert.strictEqual(notesContainer.querySelector('li')?.textContent, 'First Song by ear.', `For ${songTitle}, the note text should be correct`);
         }
 
-        async function testSuitLogicWithGaps() {
+        async function testCardGeneration() {
             await resetAppState();
             const tableBody = await waitForEl('#songTableBody');
-            
-            const songTitle = "'Simple Gifts'";
-            const songRow = Array.from(tableBody.rows).find(row => row.textContent.includes("Simple Gifts"));
-            assert.isNotNull(songRow, `Could not find the row for ${songTitle}`);
-            
-            const cardCell = songRow.cells[0];
-            assert.strictEqual(cardCell.textContent, '♠️ A', `Card for ${songTitle} (DeckOrder 27) should be Ace of Spades`);
+            const allRows = Array.from(tableBody.rows);
+
+            // Test Case 1: More Than Words (DeckOrder 24)
+            const mtwRow = allRows.find(row => row.textContent.includes("More Than Words"));
+            assert.isNotNull(mtwRow, "Could not find row for 'More Than Words'");
+            assert.strictEqual(mtwRow.cells[0].textContent, '♦️ J', "'More Than Words' (DeckOrder 24) should be Jack of Diamonds");
+
+            // Test Case 2: Simple Gifts (DeckOrder 27)
+            const sgRow = allRows.find(row => row.textContent.includes("Simple Gifts"));
+            assert.isNotNull(sgRow, "Could not find row for 'Simple Gifts'");
+            assert.strictEqual(sgRow.cells[0].textContent, '♠️ A', "'Simple Gifts' (DeckOrder 27) should be Ace of Spades");
         }
 
         async function testSortBy8TrackOrder() {

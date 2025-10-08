@@ -217,20 +217,33 @@
 
             getSongDisplay(song, playlistId) {
                 const positionMap = this.buildPositionMap(playlistId);
-                const arrayPosition = positionMap.get(song.songId); // The position in the filtered array
+                const arrayPosition = positionMap.get(song.songId); // For ordered lists
                 const playlist = model.getPlaylists().find(p => p.id === playlistId);
 
-                // For decks, the suit and visual position are determined by the explicit DeckOrder.
                 if (playlist && playlist.type === 'deck') {
                     const deckOrder = parseInt(song.DeckOrder) || null;
+
+                    // Handle invalid or missing DeckOrder by showing a Joker.
+                    if (!deckOrder || deckOrder <= 0 || deckOrder > 52) {
+                        return {
+                            position: null,
+                            suit: '🃏',
+                            card: '',
+                            display: '🃏'
+                        };
+                    }
+
+                    const suit = this.getSuit(deckOrder);
+                    const cardValue = this._getCardValue(deckOrder);
+
                     return {
-                        position: deckOrder, // Use the actual DeckOrder for display
-                        suit: this.getSuit(deckOrder),
-                        card: song.Card,
-                        display: `${this.getSuit(deckOrder)} ${song.Card}`
+                        position: deckOrder,
+                        suit: suit,
+                        card: cardValue,
+                        display: `${suit} ${cardValue}`
                     };
                 } else {
-                    // For other list types (like 8-track), position is based on the sorted array index.
+                    // For other list types (like 8-track).
                     return {
                         position: arrayPosition,
                         suit: null,
@@ -238,6 +251,16 @@
                         display: `${arrayPosition || ''}`
                     };
                 }
+            }
+
+            _getCardValue(deckOrder) {
+                // This assumes deckOrder is a valid number between 1 and 52.
+                const value = (deckOrder - 1) % 13 + 1;
+                if (value === 1) return 'A';
+                if (value === 11) return 'J';
+                if (value === 12) return 'Q';
+                if (value === 13) return 'K';
+                return String(value);
             }
 
             getSuit(deckPosition) {
@@ -374,24 +397,7 @@
         // Make removeFilter globally accessible
         window.removeFilter = removeFilter;
 
-        // Function to get suit symbol based on index
-        function getSuitSymbol(index, card) {
-            if (index <= 0) {
-                return '🃏';
-            }
-            
-            if (index >= 1 && index <= 13) {
-                return '♣️';
-            } else if (index >= 14 && index <= 27) {
-                return '♦️';
-            } else if (index >= 2 && index <= 40) {
-                return '♠️';
-            } else if (index >= 41 && index <= 53) {
-                return '♥️';
-            }
-            
-            return '♣️';
-        }
+
 
         // Function to convert notes text to clickable links
         function convertNotesToLinks(notesText) {
