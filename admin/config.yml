@@ -3,6 +3,7 @@ backend:
   name: github
   repo: rcmadden/song-deck # Your GitHub username/repo
   branch: main # The branch to update
+  auth_type: implicit # Use the client-side-only implicit grant flow
 
 # These settings are for the GitHub backend
 display_url: https://rcmadden.github.io/song-deck
