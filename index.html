@@ -137,7 +137,7 @@
                         dynamicTyping: true
                     });
 
-                                        console.log('CSV Headers from PapaParse:', parsed.meta.fields);
+                                        
 
                     if (parsed.errors.length) {
                         parsed.errors.forEach(error => {
@@ -145,9 +145,7 @@
                         });
                     }
                     this.songs = parsed.data;
-                    if (this.songs.length > 0) {
-                        console.log('First song object after parsing:', JSON.parse(JSON.stringify(this.songs[0])));
-                    }
+                    
                     return this;
                 } catch (error) {
                     console.error('Error loading application data:', error);
@@ -195,7 +193,7 @@
 
         /**
          * SongDeckManager - Manages dual-index system with computed properties
-         * Separates data identity (Index) from presentation order (deckPosition)
+         * Separates song identity from presentation order (derived from DeckOrder).
          */
         class SongDeckManager {
             constructor() {
@@ -510,16 +508,22 @@
             filteredData.sort((a, b) => {
                 let aVal, bVal;
                 
-                if (column === 'card') {
-                    aVal = parseInt(a.DeckOrder) || 0;
-                    bVal = parseInt(b.DeckOrder) || 0;
-                    // Log first comparison to see what's happening
-                    if (filteredData.indexOf(a) === 0) {
-                        console.log(`Comparing in sortData: a.DeckOrder=${a.DeckOrder} (parsed as ${aVal}), b.DeckOrder=${b.DeckOrder} (parsed as ${bVal})`);
+                                if (column === 'card') {
+                    if (currentPlaylist === '8-track') {
+                        const positionMap = deckManager.buildPositionMap(currentPlaylist);
+                        aVal = positionMap.get(a.songId) || 999;
+                        bVal = positionMap.get(b.songId) || 999;
+                    } else {
+                        aVal = parseInt(a.DeckOrder) || 0;
+                        bVal = parseInt(b.DeckOrder) || 0;
                     }
+                    // Log first comparison to see what's happening
+                    
                 } else if (column === 'song') {
-                    aVal = (a.Title || '').toLowerCase();
-                    bVal = (b.Title || '').toLowerCase();
+                                        // For song titles, remove all special characters for a more natural sort.
+                    const regex = /[^\p{L}\p{N}\s]/gu;
+                    aVal = (a.Title || '').toLowerCase().replace(regex, '');
+                    bVal = (b.Title || '').toLowerCase().replace(regex, '');
                 } else if (column === 'key') {
                     aVal = (a.Key || '').toLowerCase();
                     bVal = (b.Key || '').toLowerCase();
@@ -688,8 +692,7 @@
 
         function setupEventListeners() {
             document.querySelectorAll('.sortable').forEach(header => {
-                header.addEventListener('click', () => {
-                    if (currentPlaylist === '8-track') return; // Disable sorting for 8-track playlist
+                                header.addEventListener('click', () => {
                     const sortType = header.getAttribute('data-sort');
                     sortData(sortType);
                 });

@@ -205,19 +205,19 @@
             await resetAppState();
             const songHeader = await waitForEl('th[data-sort="song"]');
             
-            // First click should sort DESCENDING alphabetically
+            // First click should sort ASCENDING alphabetically, ignoring special chars
             songHeader.click();
             await new Promise(r => setTimeout(r, 200));
             let tableBody = await waitForEl('#songTableBody');
             let firstRowTitle = tableBody.rows[0].querySelector('.song-title').textContent;
-            assert.strictEqual(firstRowTitle.toLowerCase(), '(what a) wonderful world', '(Failing Test) First click on song sort should be reverse alphabetical (desc)');
+            assert.strictEqual(firstRowTitle.toLowerCase(), '7 years old', 'First click on song sort should be alphabetical (asc)');
 
-            // Second click should sort ASCENDING alphabetically
+            // Second click should sort DESCENDING alphabetically, ignoring special chars
             songHeader.click();
             await new Promise(r => setTimeout(r, 200));
             tableBody = await waitForEl('#songTableBody');
             firstRowTitle = tableBody.rows[0].querySelector('.song-title').textContent;
-            assert.strictEqual(firstRowTitle.toLowerCase(), 'all of me', '(Failing Test) Second click on song sort should be alphabetical (asc)');
+            assert.strictEqual(firstRowTitle.toLowerCase(), '(what a) wonderful world', 'Second click on song sort should be reverse alphabetical (desc)');
         }
 
         async function testSearchAndClear() {
@@ -255,8 +255,32 @@
             await runTest("Filtering by Key works correctly", testFilteringByKey);
             await runTest("Sorting by Card header works as expected", testColumnSorting);
             await runTest("Search and clear filter pill works", testSearchAndClear);
-            await runTest("Sorting by Song Title works alphabetically (EXPECTED TO FAIL)", testSortBySongTitle);
+                        await runTest("Sorting by Song Title works alphabetically", testSortBySongTitle);
+            await runTest("Sorting by 8-Track numeric order works", testSortBy8TrackOrder);
         });
+
+        async function testSortBy8TrackOrder() {
+            // Switch to 8-track to have a predictable state
+            const eightTrackButton = await waitForEl('.playlist-option[data-playlist="8-track"]');
+            eightTrackButton.click();
+            await new Promise(r => setTimeout(r, 200));
+
+            const cardHeader = await waitForEl('th[data-sort="card"]');
+
+            // The list is already sorted 1-8. First click should sort DESC (8 -> 1)
+            cardHeader.click();
+            await new Promise(r => setTimeout(r, 200));
+            let tableBody = await waitForEl('#songTableBody');
+            let firstRowPosition = tableBody.rows[0].cells[0].textContent;
+            assert.strictEqual(firstRowPosition, '8', 'First click on 8-track sort should be highest position (desc)');
+
+            // Second click should sort ASC (1 -> 8)
+            cardHeader.click();
+            await new Promise(r => setTimeout(r, 200));
+            tableBody = await waitForEl('#songTableBody');
+            firstRowPosition = tableBody.rows[0].cells[0].textContent;
+            assert.strictEqual(firstRowPosition, '1', 'Second click on 8-track sort should be lowest position (asc)');
+        };
 
     </script>
 </body>
