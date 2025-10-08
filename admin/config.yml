@@ -1,7 +1,12 @@
+# The backend specifies how to connect to your repository
 backend:
   name: github
   repo: rcmadden/song-deck # Your GitHub username/repo
   branch: main # The branch to update
+
+# These settings are for the GitHub backend
+display_url: https://rcmadden.github.io/song-deck
+site_url: https://rcmadden.github.io/song-deck
 
 # This line is needed for the GitHub API
 publish_mode: editorial_workflow
