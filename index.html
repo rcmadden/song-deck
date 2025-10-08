@@ -488,11 +488,7 @@
         }
 
         function sortData(column) {
-            // --- DIAGNOSTIC LOG ---
-            if (filteredData.length > 0) {
-                console.log("Inspecting the first song object right before sorting:", JSON.parse(JSON.stringify(filteredData[0])));
-            }
-            // --- END LOG ---
+            
 
             // Step 1: Determine the correct sort direction
             if (sortColumn === column) {
