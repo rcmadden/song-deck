@@ -257,7 +257,76 @@
             await runTest("Search and clear filter pill works", testSearchAndClear);
                         await runTest("Sorting by Song Title works alphabetically", testSortBySongTitle);
             await runTest("Sorting by 8-Track numeric order works", testSortBy8TrackOrder);
+
+            // Notes Parsing Tests
+            await runTest("Notes: Renders a single plain text note correctly", testNotesParsing_SingleNote);
+            await runTest("Notes: Renders two links correctly (comma-separated)", testNotesParsing_TwoLinks);
+            await runTest("Notes: Renders two links correctly ('Wonderful World - J. Batiste')", testNotesParsing_TwoLinks_JonBatiste);
+            await runTest("Suit Logic: Correctly handles gaps in DeckOrder", testSuitLogicWithGaps);
         });
+
+        async function testNotesParsing_NoteAndLink() {
+            await resetAppState();
+
+            const songRow = Array.from(appWindow.document.querySelectorAll('#songTableBody tr')).find(row => row.textContent.includes('Wonderful World') && row.textContent.includes('Jon Batiste'));
+            assert.isNotNull(songRow, "Could not find the row for '(What a) Wonderful World' by Jon Batiste");
+            songRow.click();
+
+            const detailCard = await waitForEl('#detailCard:not(.hidden)');
+            const notesContainer = detailCard.querySelector('.notes-links');
+            assert.isNotNull(notesContainer, "Notes container should be present");
+
+            const listItems = notesContainer.querySelectorAll('li');
+            assert.strictEqual(listItems.length, 3, 'Should be three items in the notes list');
+            assert.strictEqual(listItems[0].textContent, 'Area 5(1)', 'First item should be the plain text note');
+            assert.strictEqual(listItems[1].querySelector('a').textContent, 'What A Wonderful World lyrics', 'Second item should be a link with correct text');
+            assert.strictEqual(listItems[2].querySelector('a').textContent, 'What A Wonderful World', 'Third item should be a link with correct text');
+        }
+
+        async function testNotesParsing_TwoLinks() {
+            await resetAppState();
+
+            // This test assumes you have corrected the CSV for "Don't Know Why" to be comma-separated.
+            const songRow = Array.from(appWindow.document.querySelectorAll('#songTableBody tr')).find(row => row.textContent.includes("Don't Know Why"));
+            assert.isNotNull(songRow, "Could not find the row for 'Don\'t Know Why'");
+            songRow.click();
+
+            const detailCard = await waitForEl('#detailCard:not(.hidden)');
+            const notesContainer = detailCard.querySelector('.notes-links');
+            assert.isNotNull(notesContainer, "Notes container should be present for two-link song");
+
+            const links = notesContainer.querySelectorAll('a');
+            assert.strictEqual(links.length, 2, 'Should render exactly two links');
+            assert.strictEqual(links[0].textContent, 'Dont Know Why (1)', 'First link text is incorrect');
+            assert.strictEqual(links[1].textContent, 'Dont Know Why (2)', 'Second link text is incorrect');
+        }
+
+        async function testNotesParsing_SingleNote() {
+            await resetAppState();
+
+            const songRow = Array.from(appWindow.document.querySelectorAll('#songTableBody tr')).find(row => row.textContent.includes('Music For Airports'));
+            assert.isNotNull(songRow, "Could not find the row for 'Music For Airports'");
+            songRow.click();
+
+            const detailCard = await waitForEl('#detailCard:not(.hidden)');
+            const notesContainer = detailCard.querySelector('.notes-links');
+            assert.isNotNull(notesContainer, "Notes container should be present for single note");
+
+            assert.strictEqual(notesContainer.querySelectorAll('a').length, 0, 'Should be no links for a plain note');
+            assert.strictEqual(notesContainer.querySelector('li').textContent, 'First Song by ear.', 'The note text should be correct');
+        }
+
+        async function testSuitLogicWithGaps() {
+            await resetAppState();
+            const tableBody = await waitForEl('#songTableBody');
+            
+            const songTitle = "'Simple Gifts'";
+            const songRow = Array.from(tableBody.rows).find(row => row.textContent.includes("Simple Gifts"));
+            assert.isNotNull(songRow, `Could not find the row for ${songTitle}`);
+            
+            const cardCell = songRow.cells[0];
+            assert.strictEqual(cardCell.textContent, '♠️ A', `Card for ${songTitle} (DeckOrder 27) should be Ace of Spades`);
+        }
 
         async function testSortBy8TrackOrder() {
             // Switch to 8-track to have a predictable state

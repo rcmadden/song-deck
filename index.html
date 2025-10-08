@@ -217,22 +217,25 @@
 
             getSongDisplay(song, playlistId) {
                 const positionMap = this.buildPositionMap(playlistId);
-                const deckPosition = positionMap.get(song.songId);
+                const arrayPosition = positionMap.get(song.songId); // The position in the filtered array
                 const playlist = model.getPlaylists().find(p => p.id === playlistId);
 
+                // For decks, the suit and visual position are determined by the explicit DeckOrder.
                 if (playlist && playlist.type === 'deck') {
+                    const deckOrder = parseInt(song.DeckOrder) || null;
                     return {
-                        position: deckPosition,
-                        suit: this.getSuit(deckPosition),
+                        position: deckOrder, // Use the actual DeckOrder for display
+                        suit: this.getSuit(deckOrder),
                         card: song.Card,
-                        display: `${this.getSuit(deckPosition)} ${song.Card}`
+                        display: `${this.getSuit(deckOrder)} ${song.Card}`
                     };
                 } else {
+                    // For other list types (like 8-track), position is based on the sorted array index.
                     return {
-                        position: deckPosition,
+                        position: arrayPosition,
                         suit: null,
                         card: null,
-                        display: `${deckPosition || ''}`
+                        display: `${arrayPosition || ''}`
                     };
                 }
             }
@@ -305,7 +308,7 @@
                 });
                 
                 accountPanel.addEventListener('click', (e) => {
-                    e.stopPropagation();p
+                    e.stopPropagation();
                 });
                 
                 document.getElementById('profileOption')?.addEventListener('click', () => {
@@ -391,27 +394,32 @@
         }
 
         // Function to convert notes text to clickable links
-      function convertNotesToLinks(notesText) {
-        if (!notesText || typeof notesText !== 'string') return '';
-        
-        const parts = notesText.split(', ');
-        const linkElements = [];
-        
-        parts.forEach(part => {
-            part = part.trim();
-            if (part.startsWith('http')) {
-            const filename = part.split('/').pop();
-            const displayName = filename.replace(/\.[^/.]+$/, "").replace(/_/g, ' ');
-            linkElements.push(`<li><a href="#" onclick="handleLinkClick(event); loadDocument('${part}', '${filename}'); return false;">${displayName}</a></li>`);
-            } else if (part) {
-            linkElements.push(`<li>${part}</li>`);
+        function convertNotesToLinks(notesText) {
+            if (!notesText || typeof notesText !== 'string') return '';
+
+            // Robustly split by comma, then trim whitespace from each part.
+            const parts = notesText.split(',');
+            const linkElements = [];
+
+            parts.forEach(part => {
+                const trimmedPart = part.trim();
+                if (!trimmedPart) return; // Skip empty parts (e.g., from a trailing comma)
+
+                const isLink = trimmedPart.startsWith('http') || /\.(pdf|md|png|jpg|jpeg|gif|svg)$/i.test(trimmedPart);
+
+                if (isLink) {
+                    const filename = trimmedPart.split('/').pop();
+                    const displayName = filename.replace(/\.[^/.]+$/, "").replace(/[_-]/g, ' ');
+                    linkElements.push(`<li><a href="#" onclick="handleLinkClick(event); loadDocument('${trimmedPart}', '${filename}'); return false;">${displayName}</a></li>`);
+                } else {
+                    linkElements.push(`<li>${trimmedPart}</li>`);
+                }
+            });
+
+            if (linkElements.length > 0) {
+                return `<ul>${linkElements.join('')}</ul>`;
             }
-        });
-        
-        if (linkElements.length > 0) {
-            return `<ul>${linkElements.join('')}</ul>`;
-        }
-        return '';
+            return '';
         }
 
         function handleLinkClick(event) {
@@ -912,7 +920,7 @@
                             <div>${song["Puzzle Piece"]}</div>
                         </div>
                     ` : ''}
-                    ${song["Time Signature"] ? `<p>Time Signature: ${song["Time Signature"]}</p>` : ''}       
+                    ${song["Time Signature"] ? `<p>Time Signature: ${song["Time Signature"]}</p>` : ''}
                     ${notesHTML ? `<div class="notes-links">${notesHTML}</div>` : ''}
                     <div id="documentViewer" class="document-viewer" style="display: none;"></div>
                 </div>

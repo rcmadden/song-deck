@@ -1,19 +1,31 @@
 songId,Card,Title,Artist,Key,BPM,Date,Puzzle Piece,Em&a,Notes,Time Signature,Playlists,PlaylistOrders,DeckOrder
 music-for-airports-brian-eno,A,Music For Airports,Brian Eno,D,83,1978,1-4-5-Resolution(3),,First Song by ear.,,My Deck,,1
 all-of-me-john-legend,2,All of Me,John Legend,A,,2013,6-4-1-5,,,,"My Deck,8-Track","8-track:2",2
-the-luckiest-ben-folds,3,The Luckiest,Ben Folds,D,60,2001,"1/5,Verse every note in the landscape",Amanda,https://rcmadden.github.io/song-deck/souvenirs/the_luckiest.md,,My Deck,,3
+the-luckiest-ben-folds,3,The Luckiest,Ben Folds,D,60,2001,"1/5,Verse every note in the landscape",Amanda,souvenirs/the_luckiest.md,,My Deck,,3
 amazing-grace-elvis-presley,4,Amazing Grace,Elvis Presley,F,,1972,2 Chord Sandwich,,,,My Deck,,4
-tennessee-whiskey-chris-stapleton,5,Tennessee Whiskey,Chris Stapleton,A,,2015,1-2-1 Chord Sandwich,Emma,"https://rcmadden.github.io/song-deck/souvenirs/Tenessee_Whiskey_units.pdf, https://rcmadden.github.io/song-deck/souvenirs/Tennessee_Whiskey_blackboard.pdf",,"My Deck,8-Track","8-track:4",5
-what-a-wonderful-world-art-garfunkel,6,(What a) Wonderful World,Art Garfunkel,,,1977,,,"https://rcmadden.github.io/song-deck/souvenirs/What_A_Wonderful_World_garfunkel.png, https://rcmadden.github.io/song-deck/souvenirs/What_A_Wonderful_World.png",,My Deck,,6
-what-a-wonderful-world-jon-batiste,7,(What a) Wonderful World,Jon Batiste,E,178,2018,Area 5(1),Amanda,"https://rcmadden.github.io/song-deck/souvenirs/What_A_Wonderful_World_lyrics.md, https://rcmadden.github.io/song-deck/souvenirs/What_A_Wonderful_World.png",,My Deck,,7
+tennessee-whiskey-chris-stapleton,5,Tennessee Whiskey,Chris Stapleton,A,,2015,1-2-1 Chord Sandwich,Emma,"souvenirs/Tenessee_Whiskey_units.pdf, souvenirs/Tennessee_Whiskey_blackboard.pdf",,"My Deck,8-Track","8-track:4",5
+what-a-wonderful-world-art-garfunkel,6,(What a) Wonderful World,Art Garfunkel,,,1977,,,"souvenirs/What_A_Wonderful_World_garfunkel.png, souvenirs/What_A_Wonderful_World.png",,My Deck,,6
+what-a-wonderful-world-jon-batiste,7,(What a) Wonderful World,Jon Batiste,E,178,2018,Area 5(1),Amanda,"souvenirs/What_A_Wonderful_World_lyrics.md, souvenirs/What_A_Wonderful_World.png",,My Deck,,7
 dusklight-movement-jon-batiste,8,Dusklight Movement,Jon Batiste,D or G,,2024,,,,,My Deck,,8
 7-years-old-lukas-graham,9,7 Years Old,Lukas Graham,Bb,,2015,,,1765363,,My Deck,,9
 ode-to-joyful-jon-batiste,10,Ode To Joyful,Jon Batiste,G,,2024,,,,,"My Deck,8-Track","8-track:7",10
-the-rose-bette-midler,J,The Rose,Bette Midler,C?,,1979,,,https://rcmadden.github.io/song-deck/souvenirs/The_Rose.md,,My Deck,,11
-if-i-aint-got-you-alicia-keys,Q,If I Aint Got You,Alicia Keys,G,,2002,Triad Circles 6-5-4-3,Emma,https://rcmadden.github.io/song-deck/souvenirs/If_I_Aint_Got_You.pdf,,"My Deck,8-Track","8-track:3",12
+the-rose-bette-midler,J,The Rose,Bette Midler,C?,,1979,,,souvenirs/The_Rose.md,,My Deck,,11
+if-i-aint-got-you-alicia-keys,Q,If I Aint Got You,Alicia Keys,G,,2002,Triad Circles 6-5-4-3,Emma,souvenirs/If_I_Aint_Got_You.pdf,,"My Deck,8-Track","8-track:3",12
 hold-me-teddy-swims,K,Hold Me,Teddy Swims,,,2022,,,,,"My Deck,8-Track","8-track:5",13
 nocturne-in-d-minor-jon-batiste,A,Nocturne in D Minor,Jon Batiste,Dm,,2018,Dm A Area 51?,,,,"My Deck,8-Track","8-track:1",14
 christmas-time-is-here-vince-guaraldi-trio,,Christmas Time Is Here,Vince Guaraldi Trio,F,,1965,,,,,8-Track,"8-track:6",
 piano-sonata-no-14-ludwig-van-beethoven,,Piano Sonata No. 14,Ludwig Van Beethoven,,,,,,,,8-Track,"8-track:8",
-orange-sky-alexi-murdoch,2,Orange Sky,Alexi Murdoch,,,,,,,,My Deck,,17
-lean-on-me-bill-withers,3,Lean On Me,Bill Withers,C,,,561,Amanda,,,My Deck,,18
+dont-know-why-norah-jones,2,Don't Know Why,Norah Jones,Bb,,,,Amanda,"souvenirs/Dont_Know_Why_(1).pdf, souvenirs/Dont_Know_Why_(2).pdf",,My Deck,,15
+orange-sky-alexi-murdoch,3,Orange Sky,Alexi Murdoch,,,,,,,,My Deck,,16
+i-can-see-clearly-now-johnny-nash,4,I Can See Clearly Now,Johnny Nash,,,,,,,,My Deck,,17
+girl-on-fire-alicia-keys,5,Girl On Fire,Alicia Keys,,,,,,,,My Deck,,18
+lean-on-me-bill-withers,6,Lean On Me,Bill Withers,,,,,,,,My Deck,,19
+autumn-leaves-nat-king-cole,7,Autumn Leaves,Nat King Cole,,,1955,,,,,My Deck,,20
+you-are-the-sunshine-of-my-life-stevie-wonder,8,You Are The Sunshine Of My Life,Stevie Wonder,,,,,,souvenirs/You_Are_The_Sunshine_Of_My_Life.pdf,,My Deck,,21
+maison-emilio-piano,9,Maison,Emilio Piano,,,2025,,,,,My Deck,,22
+stand-by-me-ben-e-king,10,Stand By Me,Ben E. King,,,,,,,,My Deck,,23
+more-than-words-extreme,J,More Than Words,Extreme,,,,,,,,My Deck,,24
+stir-it-up-bob-marley,Q,Stir It Up,Bob Marley,,,,,,,,My Deck,,25
+hymn-to-freedom-oscar-peterson,K,Hymn To Freedom,Oscar Peterson,,,,,,,,My Deck,,26
+simple-gifts-traditional,A,Simple Gifts,Yo-Yo Ma & Alison Krauss,,,,,,,,My Deck,,27
+easy-the-commodores,2,Easy,The Commodores,,,,,,,,My Deck,,28
