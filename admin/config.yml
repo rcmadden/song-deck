@@ -5,6 +5,10 @@ backend:
   name: github
   repo: rcmadden/song-deck
   branch: main
+  # For private repos, you need to use a Personal Access Token
+  # This is stored in your browser, not in the repo
+  # auth_type: pkce  # This enables the PKCE flow for better security with private repos
+
   # For GitHub Pages, you have two options:
   
   # Option 1: Direct GitHub auth (simplest - no OAuth app needed!)
@@ -23,7 +27,7 @@ backend:
 # Display settings
 site_url: https://rcmadden.github.io/song-deck
 display_url: https://rcmadden.github.io/song-deck
-logo_url: https://rcmadden.github.io/song-deck/logo.png # Optional
+# logo_url: https://rcmadden.github.io/song-deck/logo.png # Add a logo.png file to use this
 
 # Editorial workflow allows you to save drafts
 publish_mode: editorial_workflow
