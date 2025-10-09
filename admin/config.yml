@@ -3,13 +3,12 @@
 
 backend:
   name: github
-  repo: rcmadden/song-deck
-  branch: main
+  repo: rcmadden/song-deck # Your repo
+  branch: main # The branch to update
 
-site_url: https://rcmadden.github.io/song-deck
-
-media_folder: "souvenirs"
-public_folder: "/souvenirs"
+media_folder: "souvenirs" # Where media files are stored
+public_folder: "/souvenirs" # The public path to media files
+site_url: https://rcmadden.github.io/song-deck # Your live site URL for previews
 
 collections:
   - label: "Song Database"
