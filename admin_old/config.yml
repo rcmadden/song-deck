@@ -1,0 +1,24 @@
+# Minimal Test Configuration
+
+backend:
+  name: github
+  repo: rcmadden/song-deck
+  branch: main
+
+media_folder: "souvenirs"
+public_folder: "/souvenirs"
+
+collections:
+  - name: "songs"
+    label: "Songs"
+    files:
+      - name: "all_songs"
+        label: "All Songs"
+        file: "songs.json"
+        fields:
+          - name: "songs"
+            label: "Songs"
+            widget: "list"
+            fields:
+              - { name: "Title", label: "Title", widget: "string" }
+              - { name: "Artist", label: "Artist", widget: "string" }
