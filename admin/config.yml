@@ -25,6 +25,7 @@ collections:
             summary: '{{fields.Title}} - {{fields.Artist}}'
             fields:
               - {label: "Deck Order", name: "DeckOrder", widget: "number"}
+              - {label: "Card", name: "Card", widget: "string", required: false}
               - {label: "Title", name: "Title", widget: "string"}
               - {label: "Artist", name: "Artist", widget: "string"}
               - {label: "Playlists", name: "Playlists", widget: "string", required: false}
@@ -34,6 +35,6 @@ collections:
               - {label: "Time Signature", name: "TimeSignature", widget: "string", required: false}
               - {label: "Year", name: "Date", widget: "number", required: false}
               - {label: "Puzzle Piece", name: "PuzzlePiece", widget: "string", required: false}
-              - {label: "Em & A", name: "EmAndA", widget: "string", required: false}
+              - {label: "Em & A", name: "EmAnda", widget: "string", required: false}
               - {label: "Notes", name: "Notes", widget: "text", required: false}
               - {label: "Song ID", name: "songId", widget: "string"}
