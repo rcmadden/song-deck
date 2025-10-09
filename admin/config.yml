@@ -1,24 +1,23 @@
-# Minimal Test Configuration
+# First Principles - Minimal Test Config
 
 backend:
   name: github
-  repo: rcmadden/song-deck
-  branch: main
+  repo: rcmadden/song-deck # Your repository
+  branch: main # The branch to update
 
-media_folder: "souvenirs"
-public_folder: "/souvenirs"
+# This is required for media files, even if we don't have any yet
+media_folder: "media"
 
 collections:
-  - name: "songs"
-    label: "Songs"
+  - name: "test_collection" # A unique name for our test
+    label: "Test Data"
     files:
-      - name: "all_songs"
-        label: "All Songs"
-        file: "songs.json"
+      - name: "items"
+        label: "Test Items"
+        file: "test-data.json" # A brand new file that doesn't exist yet
         fields:
-          - name: "songs"
-            label: "Songs"
+          - name: "items"
+            label: "List of Items"
             widget: "list"
             fields:
-              - { name: "Title", label: "Title", widget: "string" }
-              - { name: "Artist", label: "Artist", widget: "string" }
+              - { name: "name", label: "Item Name", widget: "string" }
