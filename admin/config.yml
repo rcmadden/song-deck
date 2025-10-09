@@ -1,50 +1,19 @@
-# DecapCMS Configuration for JSON-based Song Database
-# Place this file at: /admin/config.yml
+# FINAL DecapCMS Configuration
+# Save this EXACT content as: /admin/config.yml
 
 backend:
   name: github
   repo: rcmadden/song-deck
   branch: main
-  # For private repos, you need to use a Personal Access Token
-  # This is stored in your browser, not in the repo
-  # auth_type: pkce  # This enables the PKCE flow for better security with private repos
 
-  # For GitHub Pages, you have two options:
-  
-  # Option 1: Direct GitHub auth (simplest - no OAuth app needed!)
-  # Just leave it as is above - users will auth directly with GitHub
-  
-  # Option 2: If you want to use your OAuth App (more complex)
-  # Uncomment these lines and add your client ID:
-  # base_url: https://github.com
-  # site_domain: rcmadden.github.io
-  # auth_endpoint: login/oauth/authorize
-  # client_id: Ov23liXonunrmzyFr2DI
-
-  
-  # For now, let's use Option 1 (direct auth) - it's simpler!
-
-# Display settings
 site_url: https://rcmadden.github.io/song-deck
-display_url: https://rcmadden.github.io/song-deck
-# logo_url: https://rcmadden.github.io/song-deck/logo.png # Add a logo.png file to use this
 
-# Editorial workflow allows you to save drafts
-publish_mode: editorial_workflow
-
-# Media settings
 media_folder: "souvenirs"
 public_folder: "/souvenirs"
 
-# The main collection for your songs
 collections:
   - label: "Song Database"
     name: "songs"
-    file: "songs.json"
-    extension: "json"
-    format: "json"
-    editor:
-      preview: false # Disable preview for data files
     files:
       - label: "All Songs"
         name: "songs"
@@ -54,126 +23,17 @@ collections:
             name: "songs"
             widget: "list"
             summary: '{{fields.Title}} - {{fields.Artist}}'
-            minimize_collapsed: true # Collapse items by default for cleaner view
             fields:
-              - label: "Deck Order"
-                name: "DeckOrder"
-                widget: "number"
-                value_type: "int"
-                min: 1
-                hint: "Order in the main deck"
-                
-              - label: "Title"
-                name: "Title"
-                widget: "string"
-                hint: "Song title"
-                
-              - label: "Artist"
-                name: "Artist"
-                widget: "string"
-                hint: "Artist or band name"
-                
-              - label: "Playlists"
-                name: "Playlists"
-                widget: "string"
-                hint: "Comma-separated list (e.g., 'My Deck, 8-Track, Party Mix')"
-                required: false
-                
-              - label: "Playlist Orders"
-                name: "PlaylistOrders"
-                widget: "string"
-                required: false
-                hint: "Order in specific playlists (e.g., '8-track:1, Party:5')"
-                
-              - label: "Key"
-                name: "Key"
-                widget: "select"
-                required: false
-                options:
-                  - { label: "C Major", value: "C" }
-                  - { label: "G Major", value: "G" }
-                  - { label: "D Major", value: "D" }
-                  - { label: "A Major", value: "A" }
-                  - { label: "E Major", value: "E" }
-                  - { label: "B Major", value: "B" }
-                  - { label: "F Major", value: "F" }
-                  - { label: "Bb Major", value: "Bb" }
-                  - { label: "Eb Major", value: "Eb" }
-                  - { label: "Ab Major", value: "Ab" }
-                  - { label: "Db Major", value: "Db" }
-                  - { label: "Gb Major", value: "Gb" }
-                  - { label: "A Minor", value: "Am" }
-                  - { label: "E Minor", value: "Em" }
-                  - { label: "D Minor", value: "Dm" }
-                  - { label: "G Minor", value: "Gm" }
-                  - { label: "C Minor", value: "Cm" }
-                  - { label: "F Minor", value: "Fm" }
-                  - { label: "Other", value: "Other" }
-                
-              - label: "BPM"
-                name: "BPM"
-                widget: "number"
-                value_type: "int"
-                min: 40
-                max: 220
-                required: false
-                hint: "Beats per minute"
-                
-              - label: "Time Signature"
-                name: "TimeSignature"
-                widget: "select"
-                required: false
-                options:
-                  - "4/4"
-                  - "3/4"
-                  - "6/8"
-                  - "12/8"
-                  - "5/4"
-                  - "7/8"
-                  - "Other"
-                default: "4/4"
-                
-              - label: "Year"
-                name: "Date"
-                widget: "number"
-                value_type: "int"
-                min: 1900
-                max: 2030
-                required: false
-                hint: "Year the song was released"
-                
-              - label: "Puzzle Piece"
-                name: "PuzzlePiece"
-                widget: "string"
-                required: false
-                hint: "Special category or grouping"
-                
-              - label: "Em & A"
-                name: "EmAndA"
-                widget: "string"
-                required: false
-                hint: "Special notation or category"
-                
-              - label: "Notes"
-                name: "Notes"
-                widget: "text"
-                required: false
-                hint: "Any additional notes or comments"
-                
-              - label: "Song ID"
-                name: "songId"
-                widget: "string"
-                pattern: ['^[a-z0-9-]+$', "Only lowercase letters, numbers, and hyphens"]
-                hint: "Unique identifier (e.g., 'more-than-words-extreme')"
-
-# Optional: Add a simple config for site settings if needed
-  - label: "Settings"
-    name: "settings"
-    files:
-      - label: "Site Settings"
-        name: "site"
-        file: "settings.json"
-        fields:
-          - {label: "Site Title", name: "title", widget: "string", default: "Song Deck"}
-          - {label: "Description", name: "description", widget: "text", required: false}
-          - {label: "Default Playlist", name: "defaultPlaylist", widget: "string", default: "My Deck"}
+              - {label: "Deck Order", name: "DeckOrder", widget: "number"}
+              - {label: "Title", name: "Title", widget: "string"}
+              - {label: "Artist", name: "Artist", widget: "string"}
+              - {label: "Playlists", name: "Playlists", widget: "string", required: false}
+              - {label: "Playlist Orders", name: "PlaylistOrders", widget: "string", required: false}
+              - {label: "Key", name: "Key", widget: "string", required: false}
+              - {label: "BPM", name: "BPM", widget: "number", required: false}
+              - {label: "Time Signature", name: "TimeSignature", widget: "string", required: false}
+              - {label: "Year", name: "Date", widget: "number", required: false}
+              - {label: "Puzzle Piece", name: "PuzzlePiece", widget: "string", required: false}
+              - {label: "Em & A", name: "EmAndA", widget: "string", required: false}
+              - {label: "Notes", name: "Notes", widget: "text", required: false}
+              - {label: "Song ID", name: "songId", widget: "string"}
