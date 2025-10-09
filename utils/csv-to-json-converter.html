@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to JSON Converter for DecapCMS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            background: #fafafa;
+            margin: 20px 0;
+            transition: all 0.3s;
+        }
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background: #f0f8f0;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .upload-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .upload-label:hover {
+            background: #45a049;
+        }
+        .output-section {
+            margin-top: 30px;
+            display: none;
+        }
+        .output-section.active {
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 12px;
+            background: #f8f8f8;
+        }
+        .button-group {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .success {
+            background: #4CAF50;
+        }
+        .success:hover {
+            background: #45a049;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .preview-table th {
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+            position: sticky;
+            top: 0;
+        }
+        .preview-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow: auto;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        .stats {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .error {
+            color: #f44336;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 CSV to JSON Converter for DecapCMS</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Drop your songDB.csv file here or click to upload</p>
+            <label for="csvFile" class="upload-label">Choose CSV File</label>
+            <input type="file" id="csvFile" accept=".csv">
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="outputSection" class="output-section">
+            <div id="stats" class="stats"></div>
+            
+            <h2>📋 Preview (First 5 Songs)</h2>
+            <div class="table-container">
+                <table id="previewTable" class="preview-table"></table>
+            </div>
+
+            <h2>💾 JSON Output</h2>
+            <textarea id="jsonOutput" readonly></textarea>
+            
+            <div class="button-group">
+                <button onclick="copyToClipboard()">📋 Copy JSON</button>
+                <button onclick="downloadJSON()" class="success">💾 Download as songs.json</button>
+            </div>
+
+            <h2>📝 Instructions</h2>
+            <ol>
+                <li>Download the <code>songs.json</code> file</li>
+                <li>Place it in your repository root (same level as your index.html)</li>
+                <li>Copy the DecapCMS config from the next section</li>
+                <li>Create <code>/admin/config.yml</code> and <code>/admin/index.html</code></li>
+                <li>Commit and push to GitHub</li>
+                <li>Access your CMS at <code>https://rcmadden.github.io/song-deck/admin/</code></li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        let jsonData = null;
+        let csvHeaders = [];
+
+        // Handle file upload
+        document.getElementById('csvFile').addEventListener('change', handleFile);
+        
+        // Handle drag and drop
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#4CAF50';
+        });
+        
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#ccc';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        });
+
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            if (!file.name.endsWith('.csv')) {
+                showError('Please upload a CSV file');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = e.target.result;
+                    const json = csvToJson(csv);
+                    displayResults(json);
+                } catch (error) {
+                    showError('Error processing CSV: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function csvToJson(csv) {
+            const lines = csv.split('\n').filter(line => line.trim());
+            if (lines.length === 0) {
+                throw new Error('CSV file is empty');
+            }
+
+            // Parse headers
+            csvHeaders = parseCSVLine(lines[0]);
+            
+            // Clean up headers (remove special characters for field names)
+            const cleanHeaders = csvHeaders.map(header => {
+                return header
+                    .replace(/&/g, 'And')
+                    .replace(/\s+/g, '')
+                    .replace(/[^a-zA-Z0-9]/g, '');
+            });
+
+            const songs = [];
+            
+            // Parse data rows
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim()) {
+                    const values = parseCSVLine(lines[i]);
+                    const song = {};
+                    
+                    csvHeaders.forEach((header, index) => {
+                        const cleanHeader = cleanHeaders[index];
+                        let value = values[index] || '';
+                        
+                        // Convert numbers where appropriate
+                        if (cleanHeader === 'DeckOrder' || cleanHeader === 'BPM' || cleanHeader === 'Date') {
+                            const numValue = parseInt(value);
+                            song[cleanHeader] = isNaN(numValue) ? null : numValue;
+                        } else {
+                            song[cleanHeader] = value.trim();
+                        }
+                    });
+                    
+                    songs.push(song);
+                }
+            }
+
+            return { songs };
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current);
+            return result.map(s => s.trim());
+        }
+
+        function displayResults(data) {
+            jsonData = data;
+            
+            // Show output section
+            document.getElementById('outputSection').classList.add('active');
+            document.getElementById('error').style.display = 'none';
+            
+            // Display stats
+            const stats = document.getElementById('stats');
+            stats.innerHTML = `
+                <strong>✅ Successfully converted!</strong><br>
+                Total songs: ${data.songs.length}<br>
+                Fields: ${Object.keys(data.songs[0] || {}).join(', ')}
+            `;
+            
+            // Display preview table
+            const table = document.getElementById('previewTable');
+            const previewSongs = data.songs.slice(0, 5);
+            
+            if (previewSongs.length > 0) {
+                // Create header
+                const headerRow = '<tr>' + 
+                    Object.keys(previewSongs[0]).map(key => `<th>${key}</th>`).join('') + 
+                    '</tr>';
+                
+                // Create rows
+                const rows = previewSongs.map(song => 
+                    '<tr>' + 
+                    Object.values(song).map(value => `<td>${value || ''}</td>`).join('') + 
+                    '</tr>'
+                ).join('');
+                
+                table.innerHTML = headerRow + rows;
+            }
+            
+            // Display JSON
+            document.getElementById('jsonOutput').value = JSON.stringify(data, null, 2);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('outputSection').classList.remove('active');
+        }
+
+        function copyToClipboard() {
+            const textarea = document.getElementById('jsonOutput');
+            textarea.select();
+            document.execCommand('copy');
+            alert('JSON copied to clipboard!');
+        }
+
+        function downloadJSON() {
+            if (!jsonData) return;
+            
+            const blob = new Blob([JSON.stringify(jsonData, null, 2)], 
+                { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'songs.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
