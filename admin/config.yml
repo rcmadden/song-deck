@@ -1,39 +1,24 @@
-# FINAL DecapCMS Configuration
-# Save this EXACT content as: /admin/config.yml
+# Minimal Test Configuration
 
 backend:
   name: github
-  repo: rcmadden/song-deck # Your repo
-  branch: main # The branch to update
+  repo: rcmadden/song-deck
+  branch: main
 
-media_folder: "souvenirs" # Where media files are stored
-public_folder: "/souvenirs" # The public path to media files
-site_url: https://rcmadden.github.io/song-deck # Your live site URL for previews
+media_folder: "souvenirs"
+public_folder: "/souvenirs"
 
 collections:
-  - label: "Song Database"
-    name: "songs"
+  - name: "songs"
+    label: "Songs"
     files:
-      - label: "All Songs"
-        name: "all_songs"
+      - name: "all_songs"
+        label: "All Songs"
         file: "songs.json"
         fields:
-          - label: "Songs"
-            name: "songs"
+          - name: "songs"
+            label: "Songs"
             widget: "list"
-            summary: '{{fields.Title}} - {{fields.Artist}}'
             fields:
-              - {label: "Deck Order", name: "DeckOrder", widget: "number"}
-              - {label: "Card", name: "Card", widget: "string", required: false}
-              - {label: "Title", name: "Title", widget: "string"}
-              - {label: "Artist", name: "Artist", widget: "string"}
-              - {label: "Playlists", name: "Playlists", widget: "string", required: false}
-              - {label: "Playlist Orders", name: "PlaylistOrders", widget: "string", required: false}
-              - {label: "Key", name: "Key", widget: "string", required: false}
-              - {label: "BPM", name: "BPM", widget: "number", required: false}
-              - {label: "Time Signature", name: "TimeSignature", widget: "string", required: false}
-              - {label: "Year", name: "Date", widget: "number", required: false}
-              - {label: "Puzzle Piece", name: "PuzzlePiece", widget: "string", required: false}
-              - {label: "Em & A", name: "EmAnda", widget: "string", required: false}
-              - {label: "Notes", name: "Notes", widget: "text", required: false}
-              - {label: "Song ID", name: "songId", widget: "string"}
+              - { name: "Title", label: "Title", widget: "string" }
+              - { name: "Artist", label: "Artist", widget: "string" }

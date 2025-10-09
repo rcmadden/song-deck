@@ -13,25 +13,5 @@
     integrity="sha384-KMiaAuJPXq67avrWHW1xZhqg0SqEtULFRELgK9yJopZNIBmZkFSq+7aHH1Mscwa9"
     crossorigin="anonymous">
   </script>
-  <script>
-    window.addEventListener('DOMContentLoaded', () => {
-      // Listen for the Decap CMS `init` event
-      window.CMS.registerEventListener({
-        name: 'init',
-        handler: ({ config }) => {
-          console.log('✅ DecapCMS INIT successful! Using the following configuration:');
-          console.log(JSON.parse(JSON.stringify(config.toJS())));
-        },
-      });
-
-      // Listen for any errors
-      window.CMS.registerEventListener({
-        name: 'error',
-        handler: (error) => {
-          console.error('❌ DecapCMS ERROR:', error);
-        }
-      });
-    });
-  </script>
 </body>
 </html>
