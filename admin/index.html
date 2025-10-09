@@ -5,11 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex" />
   <title>Song Deck Admin</title>
-  
-  <!-- Include DecapCMS script -->
-  <script src="https://unpkg.com/decap-cms@^3.1.10/dist/decap-cms.js"></script>
 </head>
 <body>
-  <!-- DecapCMS automatically initializes here -->
+  <!-- Create a div for the CMS to mount to -->
+  <div id="nc-root"></div>
+  
+  <!-- Load DecapCMS script AFTER body exists -->
+  <script src="https://unpkg.com/decap-cms@^3.1.10/dist/decap-cms.js"></script>
+  
+  <!-- Initialize after everything loads -->
+  <script>
+    // Wait for the page to fully load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('DecapCMS: Page loaded, initializing...');
+      });
+    } else {
+      console.log('DecapCMS: Ready');
+    }
+  </script>
 </body>
 </html>
