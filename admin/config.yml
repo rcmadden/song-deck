@@ -1,29 +1,40 @@
-# First Principles - Minimal Test Config v2
+# FINAL PRODUCTION CONFIGURATION
 
 backend:
   name: github
   repo: rcmadden/song-deck
   branch: main
-  open_authoring: true # Use for public repos to enable a robust auth flow
-
-# Media and public folder are required for the config to be valid.
-media_folder: "media"
-public_folder: "/media"
+  open_authoring: true
 
 publish_mode: editorial_workflow
 
+media_folder: "souvenirs"
+public_folder: "/souvenirs"
+
 collections:
-  - name: "test_collection"
-    label: "Test Data"
+  - name: "song_collection" # Unique machine name for the collection
+    label: "Song Database"
     files:
-      - name: "items"
-        label: "Test Items"
-        file: "test-data.json"
+      - name: "songs_file" # Unique machine name for the file
+        label: "All Songs"
+        file: "songs.json"
         fields:
-          - name: "items"
-            label: "List of Items"
+          - name: "songs"
+            label: "Songs"
             widget: "list"
-            fields: # This specifies the fields for each object in the list
-              - name: "name"
-                label: "Item Name"
-                widget: "string"
+            summary: "{{fields.Title}} - {{fields.Artist}}"
+            fields:
+              - { name: DeckOrder, label: 'Deck Order', widget: number, required: false }
+              - { name: Card, label: Card, widget: string, required: false }
+              - { name: Title, label: Title, widget: string, required: false }
+              - { name: Artist, label: Artist, widget: string, required: false }
+              - { name: Playlists, label: Playlists, widget: string, required: false }
+              - { name: PlaylistOrders, label: 'Playlist Orders', widget: string, required: false }
+              - { name: Key, label: Key, widget: string, required: false }
+              - { name: BPM, label: BPM, widget: number, required: false }
+              - { name: TimeSignature, label: 'Time Signature', widget: string, required: false }
+              - { name: Date, label: Year, widget: number, required: false }
+              - { name: PuzzlePiece, label: 'Puzzle Piece', widget: string, required: false }
+              - { name: EmAnda, label: 'Em & A', widget: string, required: false }
+              - { name: Notes, label: Notes, widget: text, required: false }
+              - { name: songId, label: 'Song ID', widget: string, required: false }
