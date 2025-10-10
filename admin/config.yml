@@ -10,6 +10,8 @@ backend:
 media_folder: "media"
 public_folder: "/media"
 
+publish_mode: editorial_workflow
+
 collections:
   - name: "test_collection"
     label: "Test Data"
