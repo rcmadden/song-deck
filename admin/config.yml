@@ -4,6 +4,7 @@ backend:
   name: github
   repo: rcmadden/song-deck
   branch: main
+  open_authoring: true # Use for public repos to enable a robust auth flow
 
 # Media and public folder are required for the config to be valid.
 media_folder: "media"
