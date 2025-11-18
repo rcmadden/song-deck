@@ -149,6 +149,10 @@ body {
   color: var(--blue-primary); /* Blue text on hover */
 }
 
+#playlistOption a{
+  text-decoration: none;
+}
+
 .header-icons {
   display: flex;
   align-items: center;

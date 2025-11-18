@@ -41,10 +41,12 @@
                         <div class="account-name">Russia M</div>
                     </div>
                     <div class="account-panel" id="accountPanel">
-                        <div class="account-option" id="profileOption">Profile</div>
-                        <div class="account-option" id="billingOption">Billing</div>
-                        <div class="account-option" id="themeOption">Light mode</div>
-                        <div class="account-option" id="logoutOption">Log out</div>
+                        <div class="account-option" id="playlistOption"><a href="https://music.apple.com/us/playlist/a-8-track/pl.u-3B5J5TqLRJY" target="_blank">8 Track Playlist</a></div>
+                        <div class="account-option" id="playlistOption"><a href="https://music.apple.com/us/playlist/my-deck/pl.u-Dkx65Hgqpv0" target="_blank">My Deck Playlist</a></div>
+                        <!-- <div class="account-option" id="profileOption">Profile</div> -->
+                        <!-- <div class="account-option" id="billingOption">Billing</div> -->
+                        <!-- <div class="account-option" id="themeOption">Light mode</div> -->
+                        <!-- <div class="account-option" id="logoutOption">Log out</div> -->
                     </div>
                 </div>
             </div>
@@ -334,25 +336,29 @@
                     e.stopPropagation();
                 });
                 
-                document.getElementById('profileOption')?.addEventListener('click', () => {
-                    alert('Profile functionality coming soon!');
+                document.getElementById('playlistOption')?.addEventListener('click', () => {
                     accountPanel.style.display = 'none';
                 });
                 
-                document.getElementById('billingOption')?.addEventListener('click', () => {
-                    alert('Billing functionality coming soon!');
-                    accountPanel.style.display = 'none';
-                });
+                // document.getElementById('profileOption')?.addEventListener('click', () => {
+                //     alert('Profile functionality coming soon!');
+                //     accountPanel.style.display = 'none';
+                // });
                 
-                document.getElementById('themeOption')?.addEventListener('click', () => {
-                    toggleTheme();
-                    accountPanel.style.display = 'none';
-                });
+                // document.getElementById('billingOption')?.addEventListener('click', () => {
+                //     alert('Billing functionality coming soon!');
+                //     accountPanel.style.display = 'none';
+                // });
                 
-                document.getElementById('logoutOption')?.addEventListener('click', () => {
-                    alert('Logout functionality coming soon!');
-                    accountPanel.style.display = 'none';
-                });
+                // document.getElementById('themeOption')?.addEventListener('click', () => {
+                //     toggleTheme();
+                //     accountPanel.style.display = 'none';
+                // });
+                
+                // document.getElementById('logoutOption')?.addEventListener('click', () => {
+                //     alert('Logout functionality coming soon!');
+                //     accountPanel.style.display = 'none';
+                // });
             }
         }
 
